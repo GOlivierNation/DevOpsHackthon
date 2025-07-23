@@ -1,34 +1,48 @@
 {
   "name": "devops-hackathon-pipeline",
-  "version": "1.2.3",
-  "description": "Complete DevOps CI/CD pipeline demonstration for hackathon",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Complete DevOps CI/CD pipeline demonstration with Next.js, Docker, Kubernetes, and monitoring",
   "keywords": [
     "devops",
-    "hackathon",
-    "ci-cd",
-    "vercel",
-    "next.js"
+    "cicd",
+    "docker",
+    "kubernetes",
+    "nextjs",
+    "monitoring",
+    "hackathon"
   ],
+  "homepage": "https://github.com/your-username/devops-hackathon-pipeline#readme",
+  "bugs": {
+    "url": "https://github.com/your-username/devops-hackathon-pipeline/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/GOlivierNation/DevOpsHackthon.git"
+    "url": "https://github.com/your-username/devops-hackathon-pipeline.git"
   },
   "license": "MIT",
-  "author": "GOlivierNation",
-  "main": "index.js",
+  "author": "DevOps Team",
   "scripts": {
     "build": "next build",
-    "deploy:vercel": "vercel --prod",
+    "deploy": "chmod +x scripts/deploy.sh && ./scripts/deploy.sh",
     "dev": "next dev",
+    "docker:build": "docker build -t devops-hackathon-pipeline .",
+    "docker:run": "docker run -p 3000:3000 devops-hackathon-pipeline",
+    "k8s:apply": "kubectl apply -f k8s/",
+    "k8s:delete": "kubectl delete -f k8s/",
     "lint": "next lint",
-    "lint:fix": "next lint --fix",
+    "setup": "chmod +x scripts/setup.sh && ./scripts/setup.sh",
     "start": "next start",
-    "test": "jest"
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
     "@radix-ui/react-progress": "^1.0.3",
     "@radix-ui/react-tabs": "^1.0.4",
+    "@radix-ui/react-tooltip": "^1.0.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.454.0",
@@ -42,11 +56,13 @@
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "autoprefixer": "10.4.16",
-    "eslint": "8.55.0",
-    "eslint-config-next": "14.0.4",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.51.0",
+    "eslint-config-next": "14.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.5",
-    "tailwindcss": "3.3.6",
+    "tailwindcss": "^3.3.5",
     "typescript": "^5"
   }
 }
