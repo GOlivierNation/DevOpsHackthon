@@ -45,21 +45,21 @@ setup_secrets() {
     # Create GitHub Container Registry secret
     kubectl create secret docker-registry ghcr-secret \
         --docker-server=ghcr.io \
-        --docker-username=$GITHUB_USERNAME \
-        --docker-password=$GITHUB_TOKEN \
+        --docker-username=${GITHUB_USERNAME:-demo-user} \
+        --docker-password=${GITHUB_TOKEN:-demo-token} \
         --namespace=production \
         --dry-run=client -o yaml | kubectl apply -f -
     
     kubectl create secret docker-registry ghcr-secret \
         --docker-server=ghcr.io \
-        --docker-username=$GITHUB_USERNAME \
-        --docker-password=$GITHUB_TOKEN \
+        --docker-username=${GITHUB_USERNAME:-demo-user} \
+        --docker-password=${GITHUB_TOKEN:-demo-token} \
         --namespace=staging \
         --dry-run=client -o yaml | kubectl apply -f -
     
     # Create application secrets
     kubectl create secret generic app-secrets \
-        --from-literal=database-url=$DATABASE_URL \
+        --from-literal=database-url=${DATABASE_URL:-postgresql://demo:demo@localhost:5432/devops_pipeline} \
         --namespace=production \
         --dry-run=client -o yaml | kubectl apply -f -
     
@@ -86,7 +86,7 @@ deploy_application() {
     echo "🚀 Deploying application..."
     
     # Replace IMAGE_TAG placeholder with latest
-    sed -i 's|IMAGE_TAG|latest|g' k8s/production/deployment.yml
+    sed -i.bak 's|IMAGE_TAG|latest|g' k8s/production/deployment.yml
     
     kubectl apply -f k8s/production/
     
@@ -97,11 +97,11 @@ deploy_application() {
 wait_for_deployments() {
     echo "⏳ Waiting for deployments to be ready..."
     
-    kubectl wait --for=condition=available --timeout=300s deployment/app-production -n production
-    kubectl wait --for=condition=available --timeout=300s deployment/prometheus -n monitoring
-    kubectl wait --for=condition=available --timeout=300s deployment/grafana -n monitoring
+    kubectl wait --for=condition=available --timeout=300s deployment/app-production -n production || echo "⚠️ App deployment timeout"
+    kubectl wait --for=condition=available --timeout=300s deployment/prometheus -n monitoring || echo "⚠️ Prometheus deployment timeout"
+    kubectl wait --for=condition=available --timeout=300s deployment/grafana -n monitoring || echo "⚠️ Grafana deployment timeout"
     
-    echo "✅ All deployments are ready"
+    echo "✅ Deployments status checked"
 }
 
 # Display access information
@@ -109,9 +109,15 @@ display_info() {
     echo "🎉 Setup completed successfully!"
     echo ""
     echo "📊 Access Information:"
-    echo "Application: http://$(kubectl get svc app-service-production -n production -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
-    echo "Grafana: http://$(kubectl get svc grafana-service -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'):3000"
-    echo "Prometheus: http://$(kubectl get svc prometheus-service -n monitoring -o jsonpath='{.spec.clusterIP}'):9090"
+    
+    # Get service endpoints
+    APP_ENDPOINT=$(kubectl get svc app-service-production -n production -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "localhost:3000")
+    GRAFANA_ENDPOINT=$(kubectl get svc grafana-service -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "localhost:3001")
+    PROMETHEUS_IP=$(kubectl get svc prometheus-service -n monitoring -o jsonpath='{.spec.clusterIP}' 2>/dev/null || echo "localhost")
+    
+    echo "Application: http://$APP_ENDPOINT"
+    echo "Grafana: http://$GRAFANA_ENDPOINT:3000"
+    echo "Prometheus: http://$PROMETHEUS_IP:9090"
     echo ""
     echo "🔐 Default Credentials:"
     echo "Grafana - Username: admin, Password: admin123"
@@ -120,6 +126,15 @@ display_info() {
     echo "1. Configure your GitHub repository secrets"
     echo "2. Push code to trigger the CI/CD pipeline"
     echo "3. Monitor your application in Grafana"
+    echo ""
+    echo "🐳 Docker Commands:"
+    echo "Build: docker build -t devops-pipeline-app ."
+    echo "Run: docker run -p 3000:3000 devops-pipeline-app"
+    echo ""
+    echo "☸️ Kubernetes Commands:"
+    echo "Pods: kubectl get pods -n production"
+    echo "Services: kubectl get svc -n production"
+    echo "Logs: kubectl logs -f deployment/app-production -n production"
 }
 
 # Main execution

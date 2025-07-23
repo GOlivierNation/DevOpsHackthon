@@ -20,6 +20,10 @@ import {
   Play,
 } from "lucide-react"
 
+import { RepositoryModal } from "@/components/repository-modal"
+import { ClusterModal } from "@/components/cluster-modal"
+import { ImagesModal } from "@/components/images-modal"
+
 interface PipelineRun {
   id: string
   status: "success" | "failed" | "running"
@@ -61,6 +65,10 @@ export default function DevOpsPipelineDashboard() {
   })
   const [containerImages, setContainerImages] = useState<ContainerImage[]>([])
   const [alerts, setAlerts] = useState<Array<{ type: "warning" | "success"; message: string }>>([])
+
+  const [repositoryModalOpen, setRepositoryModalOpen] = useState(false)
+  const [clusterModalOpen, setClusterModalOpen] = useState(false)
+  const [imagesModalOpen, setImagesModalOpen] = useState(false)
 
   // Simulate real-time data updates
   useEffect(() => {
@@ -294,7 +302,11 @@ export default function DevOpsPipelineDashboard() {
                       <span className="font-medium">5</span>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full bg-transparent">
+                  <Button
+                    variant="outline"
+                    className="w-full bg-transparent"
+                    onClick={() => setRepositoryModalOpen(true)}
+                  >
                     View Repository
                   </Button>
                 </CardContent>
@@ -319,7 +331,7 @@ export default function DevOpsPipelineDashboard() {
                       <span className="font-medium">2m 45s</span>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full bg-transparent">
+                  <Button variant="outline" className="w-full bg-transparent" onClick={() => setImagesModalOpen(true)}>
                     View Images
                   </Button>
                 </CardContent>
@@ -344,7 +356,7 @@ export default function DevOpsPipelineDashboard() {
                       <span className="font-medium">98.5%</span>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full bg-transparent">
+                  <Button variant="outline" className="w-full bg-transparent" onClick={() => setClusterModalOpen(true)}>
                     View Cluster
                   </Button>
                 </CardContent>
@@ -870,6 +882,9 @@ export default function DevOpsPipelineDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+        <RepositoryModal open={repositoryModalOpen} onOpenChange={setRepositoryModalOpen} />
+        <ClusterModal open={clusterModalOpen} onOpenChange={setClusterModalOpen} />
+        <ImagesModal open={imagesModalOpen} onOpenChange={setImagesModalOpen} />
       </div>
     </div>
   )
