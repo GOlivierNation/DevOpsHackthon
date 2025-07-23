@@ -6,19 +6,9 @@
     "devops",
     "hackathon",
     "ci-cd",
-    "docker",
-    "kubernetes",
-    "monitoring",
-    "prometheus",
-    "grafana",
-    "github-actions",
-    "aws",
-    "eks"
+    "vercel",
+    "next.js"
   ],
-  "homepage": "https://github.com/GOlivierNation/DevOpsHackthon#readme",
-  "bugs": {
-    "url": "https://github.com/GOlivierNation/DevOpsHackthon/issues"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/GOlivierNation/DevOpsHackthon.git"
@@ -28,23 +18,12 @@
   "main": "index.js",
   "scripts": {
     "build": "next build",
-    "deploy:railway": "railway up",
     "deploy:vercel": "vercel --prod",
     "dev": "next dev",
-    "docker:build": "docker build -t devops-pipeline-app .",
-    "docker:run": "docker run -p 3000:3000 devops-pipeline-app",
-    "k8s:delete": "kubectl delete -f k8s/",
-    "k8s:deploy": "kubectl apply -f k8s/",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "security:audit": "npm audit --audit-level high",
-    "security:fix": "npm audit fix",
-    "setup:local": "chmod +x scripts/setup.sh && ./scripts/setup.sh",
     "start": "next start",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
-    "test:integration": "jest --config jest.integration.config.js",
-    "test:watch": "jest --watch"
+    "test": "jest"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
@@ -60,15 +39,12 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.8",
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "10.4.16",
     "eslint": "8.55.0",
     "eslint-config-next": "14.0.4",
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.5",
     "tailwindcss": "3.3.6",
     "typescript": "^5"
