@@ -3,13 +3,13 @@ import { NextResponse } from "next/server"
 export async function GET() {
   try {
     const imagesInfo = {
-      registry: "ghcr.io/GOlivierNation",
-      registryUrl: "https://github.com/GOlivierNation/DevOpsHackthon/pkgs/container/devops-pipeline-app",
+      registry: "ghcr.io/goliviernation",
+      registryUrl: "https://github.com/GOlivierNation/DevOpsHackthon/pkgs/container/devops-hackathon-pipeline",
       totalImages: 45,
       totalSize: "2.1 GB",
       images: [
         {
-          name: "devops-pipeline-app",
+          name: "devops-hackathon-pipeline",
           tag: "latest",
           size: "45.2 MB",
           created: "2 min ago",
@@ -25,7 +25,7 @@ export async function GET() {
           lastPull: "1 min ago",
         },
         {
-          name: "devops-pipeline-app",
+          name: "devops-hackathon-pipeline",
           tag: "v1.2.3",
           size: "45.2 MB",
           created: "1 hour ago",
@@ -41,7 +41,7 @@ export async function GET() {
           lastPull: "30 min ago",
         },
         {
-          name: "devops-pipeline-app",
+          name: "devops-hackathon-pipeline",
           tag: "staging",
           size: "47.1 MB",
           created: "3 hours ago",
@@ -57,7 +57,7 @@ export async function GET() {
           lastPull: "2 hours ago",
         },
         {
-          name: "devops-pipeline-app",
+          name: "devops-hackathon-pipeline",
           tag: "v1.2.2",
           size: "44.8 MB",
           created: "1 day ago",

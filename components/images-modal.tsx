@@ -32,6 +32,13 @@ export function ImagesModal({ open, onOpenChange }: ImagesModalProps) {
     }
   }
 
+  const openRegistry = () => {
+    const registryUrl =
+      imagesData?.registryUrl ||
+      "https://github.com/GOlivierNation/DevOpsHackthon/pkgs/container/devops-hackathon-pipeline"
+    window.open(registryUrl, "_blank", "noopener,noreferrer")
+  }
+
   useEffect(() => {
     if (open) {
       fetchImagesData()
@@ -72,17 +79,7 @@ export function ImagesModal({ open, onOpenChange }: ImagesModalProps) {
                 <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} />
                 Refresh
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  window.open(
-                    imagesData?.registryUrl ||
-                      "https://github.com/GOlivierNation/DevOpsHackthon/pkgs/container/devops-pipeline-app",
-                    "_blank",
-                  )
-                }
-              >
+              <Button variant="outline" size="sm" onClick={openRegistry}>
                 <ExternalLink className="w-4 h-4 mr-1" />
                 Registry
               </Button>
