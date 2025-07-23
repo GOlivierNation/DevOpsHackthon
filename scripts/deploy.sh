@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # DevOps Pipeline Deployment Script
-# This script automates the deployment process
+# © 2025 All rights reserved by Olivier
 
-set -e  # Exit on any error
+set -e
 
-echo "🚀 Starting DevOps Pipeline Deployment..."
+echo "🚀 DevOps Pipeline Deployment Script"
+echo "===================================="
 
 # Colors for output
 RED='\033[0;31m'
@@ -16,11 +17,7 @@ NC='\033[0m' # No Color
 
 # Function to print colored output
 print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    echo -e "${GREEN}[INFO]${NC} $1"
 }
 
 print_warning() {
@@ -31,305 +28,287 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if required tools are installed
+print_header() {
+    echo -e "${BLUE}$1${NC}"
+}
+
+# Check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Check prerequisites
 check_prerequisites() {
-    print_status "Checking prerequisites..."
+    print_header "🔍 Checking Prerequisites..."
     
-    # Check Node.js
-    if ! command -v node &> /dev/null; then
-        print_error "Node.js is not installed. Please install Node.js 18+ from https://nodejs.org/"
+    local missing_tools=()
+    
+    if ! command_exists node; then
+        missing_tools+=("Node.js")
+    fi
+    
+    if ! command_exists npm; then
+        missing_tools+=("npm")
+    fi
+    
+    if ! command_exists git; then
+        missing_tools+=("Git")
+    fi
+    
+    if ! command_exists docker; then
+        missing_tools+=("Docker")
+    fi
+    
+    if [ ${#missing_tools[@]} -ne 0 ]; then
+        print_error "Missing required tools: ${missing_tools[*]}"
+        print_error "Please install missing tools and run again."
         exit 1
     fi
     
-    # Check npm
-    if ! command -v npm &> /dev/null; then
-        print_error "npm is not installed. Please install npm."
-        exit 1
-    fi
-    
-    # Check Git
-    if ! command -v git &> /dev/null; then
-        print_error "Git is not installed. Please install Git from https://git-scm.com/"
-        exit 1
-    fi
-    
-    # Check Docker (optional)
-    if ! command -v docker &> /dev/null; then
-        print_warning "Docker is not installed. Some features may not work."
-    fi
-    
-    # Check Vercel CLI
-    if ! command -v vercel &> /dev/null; then
-        print_warning "Vercel CLI is not installed. Installing now..."
-        npm install -g vercel
-    fi
-    
-    print_success "Prerequisites check completed!"
+    print_status "All prerequisites satisfied ✅"
 }
 
 # Install dependencies
 install_dependencies() {
-    print_status "Installing project dependencies..."
-    npm install
-    print_success "Dependencies installed successfully!"
-}
-
-# Setup environment variables
-setup_environment() {
-    print_status "Setting up environment variables..."
+    print_header "📦 Installing Dependencies..."
     
-    if [ ! -f .env.local ]; then
-        print_status "Creating .env.local file..."
-        cat > .env.local << EOF
-# GitHub Configuration
-GITHUB_TOKEN=your-github-token-here
-GITHUB_USERNAME=your-username-here
+    if [ -f "package.json" ]; then
+        npm install
+        print_status "Dependencies installed ✅"
+    else
+        print_error "package.json not found. Are you in the correct directory?"
+        exit 1
+    fi
+}
 
-# Database (if using)
-DATABASE_URL=your-database-url-here
+# Setup environment
+setup_environment() {
+    print_header "⚙️ Setting up Environment..."
+    
+    if [ ! -f ".env.local" ]; then
+        if [ -f ".env.example" ]; then
+            cp .env.example .env.local
+            print_status "Created .env.local from .env.example"
+            print_warning "Please edit .env.local with your actual values"
+        else
+            cat > .env.local << EOF
+# Database Configuration
+DATABASE_URL="postgresql://user:password@localhost:5432/devops_pipeline"
 
-# AWS Configuration (if using EKS)
-AWS_ACCESS_KEY_ID=your-aws-access-key-here
-AWS_SECRET_ACCESS_KEY=your-aws-secret-key-here
-AWS_REGION=us-east-1
+# AWS Configuration (Optional)
+AWS_REGION="us-west-2"
+AWS_ACCOUNT_ID="123456789012"
+EKS_CLUSTER_NAME="production-cluster"
 
-# Monitoring (optional)
-GRAFANA_API_KEY=your-grafana-key-here
-PROMETHEUS_URL=your-prometheus-url-here
+# Monitoring Configuration (Optional)
+GRAFANA_API_KEY="your-grafana-api-key"
+PROMETHEUS_URL="http://localhost:9090"
 
-# Application
-NODE_ENV=development
-PORT=3000
+# Application Configuration
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 EOF
-        print_warning "Please update .env.local with your actual values!"
+            print_status "Created .env.local template"
+            print_warning "Please edit .env.local with your actual values"
+        fi
     else
-        print_success "Environment file already exists!"
+        print_status "Environment file already exists ✅"
     fi
 }
 
-# Build the application
+# Build application
 build_application() {
-    print_status "Building the application..."
+    print_header "🔨 Building Application..."
+    
     npm run build
-    print_success "Application built successfully!"
-}
-
-# Test the application
-test_application() {
-    print_status "Running tests..."
-    if npm run test --if-present; then
-        print_success "All tests passed!"
-    else
-        print_warning "No tests found or tests failed."
-    fi
+    print_status "Application built successfully ✅"
 }
 
 # Deploy to Vercel
-deploy_to_vercel() {
+deploy_vercel() {
+    print_header "🚀 Deploying to Vercel..."
+    
+    if ! command_exists vercel; then
+        print_status "Installing Vercel CLI..."
+        npm install -g vercel
+    fi
+    
     print_status "Deploying to Vercel..."
-    
-    # Check if user is logged in to Vercel
-    if ! vercel whoami &> /dev/null; then
-        print_status "Please log in to Vercel..."
-        vercel login
-    fi
-    
-    # Deploy to production
     vercel --prod --confirm
-    print_success "Deployed to Vercel successfully!"
+    print_status "Deployed to Vercel successfully ✅"
 }
 
-# Build and push Docker image
-build_docker_image() {
-    if command -v docker &> /dev/null; then
-        print_status "Building Docker image..."
+# Build Docker image
+build_docker() {
+    print_header "🐳 Building Docker Image..."
+    
+    local image_name="devops-pipeline:latest"
+    
+    if [ -f "Dockerfile" ]; then
+        docker build -t $image_name .
+        print_status "Docker image built: $image_name ✅"
         
-        # Get GitHub username from git config or environment
-        GITHUB_USERNAME=${GITHUB_USERNAME:-$(git config user.name | tr '[:upper:]' '[:lower:]' | tr ' ' '-')}
+        # Test the image
+        print_status "Testing Docker image..."
+        docker run --rm -d -p 3001:3000 --name devops-test $image_name
+        sleep 5
         
-        if [ -z "$GITHUB_USERNAME" ]; then
-            print_error "GitHub username not found. Please set GITHUB_USERNAME environment variable."
-            return 1
+        if curl -f http://localhost:3001 >/dev/null 2>&1; then
+            print_status "Docker image test passed ✅"
+        else
+            print_warning "Docker image test failed, but image was built"
         fi
         
-        IMAGE_NAME="ghcr.io/${GITHUB_USERNAME}/devops-hackathon-pipeline"
-        
-        # Build image
-        docker build -t $IMAGE_NAME:latest .
-        
-        # Tag with timestamp
-        TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-        docker tag $IMAGE_NAME:latest $IMAGE_NAME:$TIMESTAMP
-        
-        print_success "Docker image built successfully!"
-        print_status "Image tagged as: $IMAGE_NAME:latest and $IMAGE_NAME:$TIMESTAMP"
-        
-        # Ask if user wants to push
-        read -p "Do you want to push the image to GitHub Container Registry? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            # Login to GitHub Container Registry
-            if [ -n "$GITHUB_TOKEN" ]; then
-                echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
-                docker push $IMAGE_NAME:latest
-                docker push $IMAGE_NAME:$TIMESTAMP
-                print_success "Docker image pushed successfully!"
-            else
-                print_error "GITHUB_TOKEN not set. Cannot push to registry."
-            fi
-        fi
+        docker stop devops-test >/dev/null 2>&1 || true
     else
-        print_warning "Docker not installed. Skipping Docker build."
+        print_error "Dockerfile not found"
+        return 1
     fi
 }
 
-# Setup Kubernetes (if kubectl is available)
-setup_kubernetes() {
-    if command -v kubectl &> /dev/null; then
-        print_status "Setting up Kubernetes resources..."
-        
-        # Check if cluster is accessible
-        if kubectl cluster-info &> /dev/null; then
-            # Create namespaces
-            kubectl create namespace production --dry-run=client -o yaml | kubectl apply -f -
-            kubectl create namespace staging --dry-run=client -o yaml | kubectl apply -f -
-            kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
-            
-            # Apply configurations
-            if [ -d "k8s" ]; then
-                kubectl apply -f k8s/ --recursive
-                print_success "Kubernetes resources applied successfully!"
-            else
-                print_warning "k8s directory not found. Skipping Kubernetes setup."
-            fi
-        else
-            print_warning "Kubernetes cluster not accessible. Skipping Kubernetes setup."
-        fi
+# Deploy to Kubernetes
+deploy_kubernetes() {
+    print_header "☸️ Deploying to Kubernetes..."
+    
+    if ! command_exists kubectl; then
+        print_warning "kubectl not found. Skipping Kubernetes deployment."
+        return 0
+    fi
+    
+    if [ -d "k8s" ]; then
+        kubectl apply -f k8s/
+        print_status "Deployed to Kubernetes ✅"
     else
-        print_warning "kubectl not installed. Skipping Kubernetes setup."
+        print_warning "k8s directory not found. Skipping Kubernetes deployment."
+    fi
+}
+
+# Run tests
+run_tests() {
+    print_header "🧪 Running Tests..."
+    
+    if npm run test >/dev/null 2>&1; then
+        print_status "Tests passed ✅"
+    else
+        print_warning "Tests failed or no test script found"
     fi
 }
 
 # Generate deployment report
 generate_report() {
-    print_status "Generating deployment report..."
+    print_header "📊 Generating Deployment Report..."
     
-    REPORT_FILE="deployment-report-$(date +%Y%m%d-%H%M%S).md"
+    local report_file="deployment-report-$(date +%Y%m%d-%H%M%S).md"
     
-    cat > $REPORT_FILE << EOF
+    cat > $report_file << EOF
 # Deployment Report
+Generated: $(date)
 
-**Date**: $(date)
-**Project**: DevOps CI/CD Pipeline
-**Status**: Deployed Successfully ✅
+## Environment Information
+- Node.js: $(node --version)
+- npm: $(npm --version)
+- Git: $(git --version)
+- Docker: $(docker --version)
 
-## Deployment Details
+## Deployment Status
+- Application Built: ✅
+- Environment Configured: ✅
+- Dependencies Installed: ✅
 
-### Environment
-- Node.js Version: $(node --version)
-- npm Version: $(npm --version)
-- Git Version: $(git --version)
+## Next Steps
+1. Update environment variables in .env.local
+2. Configure monitoring endpoints
+3. Set up GitHub Actions secrets
+4. Test all application features
 
-### Application
-- Build Status: ✅ Success
-- Test Status: ✅ Passed
-- Deployment Target: Vercel
+## Useful Commands
+\`\`\`bash
+# Start development server
+npm run dev
 
-### URLs
-- Production URL: [Check Vercel Dashboard](https://vercel.com/dashboard)
-- Repository: $(git config --get remote.origin.url)
+# Build for production
+npm run build
 
-### Next Steps
-1. Update environment variables in Vercel dashboard
-2. Configure monitoring dashboards
-3. Set up alerts and notifications
-4. Prepare presentation materials
+# Run tests
+npm test
 
-### Troubleshooting
-If you encounter issues:
-1. Check Vercel deployment logs
-2. Verify environment variables
-3. Test locally with \`npm run dev\`
-4. Review GitHub Actions workflow
+# Deploy to Vercel
+vercel --prod
+\`\`\`
 
 ---
-Generated by deployment script on $(date)
+© 2025 All rights reserved by Olivier
 EOF
-
-    print_success "Deployment report generated: $REPORT_FILE"
+    
+    print_status "Deployment report generated: $report_file ✅"
 }
 
 # Main deployment function
 main() {
-    echo "======================================"
-    echo "🚀 DevOps Pipeline Deployment Script"
-    echo "======================================"
-    echo
+    print_header "🎯 Starting DevOps Pipeline Deployment"
+    echo ""
     
-    check_prerequisites
-    echo
-    
-    install_dependencies
-    echo
-    
-    setup_environment
-    echo
-    
-    build_application
-    echo
-    
-    test_application
-    echo
-    
-    # Ask user what they want to deploy
+    # Interactive menu
     echo "Select deployment options:"
-    echo "1. Deploy to Vercel only"
-    echo "2. Build Docker image"
-    echo "3. Setup Kubernetes"
-    echo "4. All of the above"
-    echo
+    echo "1) Full deployment (Vercel + Docker)"
+    echo "2) Vercel only"
+    echo "3) Docker only"
+    echo "4) Local development setup"
+    echo "5) Kubernetes deployment"
+    echo ""
+    read -p "Enter your choice (1-5): " choice
     
-    read -p "Enter your choice (1-4): " -n 1 -r
-    echo
-    echo
-    
-    case $REPLY in
+    case $choice in
         1)
-            deploy_to_vercel
+            check_prerequisites
+            install_dependencies
+            setup_environment
+            build_application
+            deploy_vercel
+            build_docker
+            run_tests
+            generate_report
             ;;
         2)
-            build_docker_image
+            check_prerequisites
+            install_dependencies
+            setup_environment
+            build_application
+            deploy_vercel
+            run_tests
+            generate_report
             ;;
         3)
-            setup_kubernetes
+            check_prerequisites
+            install_dependencies
+            setup_environment
+            build_docker
+            run_tests
+            generate_report
             ;;
         4)
-            deploy_to_vercel
-            echo
-            build_docker_image
-            echo
-            setup_kubernetes
+            check_prerequisites
+            install_dependencies
+            setup_environment
+            run_tests
+            print_status "Development environment ready! Run 'npm run dev' to start."
+            ;;
+        5)
+            check_prerequisites
+            build_docker
+            deploy_kubernetes
+            generate_report
             ;;
         *)
-            print_warning "Invalid choice. Deploying to Vercel only."
-            deploy_to_vercel
+            print_error "Invalid choice. Please run the script again."
+            exit 1
             ;;
     esac
     
-    echo
-    generate_report
-    echo
-    
-    print_success "🎉 Deployment completed successfully!"
-    echo
-    echo "Next steps:"
-    echo "1. Check your Vercel dashboard for the deployment URL"
-    echo "2. Update environment variables if needed"
-    echo "3. Test all application features"
-    echo "4. Set up monitoring and alerts"
-    echo "5. Prepare your hackathon presentation"
-    echo
-    echo "Happy coding! 🚀"
+    print_header "🎉 Deployment Complete!"
+    echo ""
+    print_status "Your DevOps pipeline is ready!"
+    print_status "Check the generated report for next steps."
+    echo ""
 }
 
 # Run main function
