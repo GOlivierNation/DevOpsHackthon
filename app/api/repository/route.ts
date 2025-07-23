@@ -4,7 +4,7 @@ export async function GET() {
   try {
     const repositoryInfo = {
       name: "devops-pipeline-app",
-      url: "https://github.com/your-org/devops-pipeline-app",
+      url: "https://github.com/GOlivierNation/DevOpsHackthon",
       branch: "main",
       lastCommit: {
         hash: "abc123f",

@@ -58,7 +58,11 @@ export function RepositoryModal({ open, onOpenChange }: RepositoryModalProps) {
                 Refresh
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <a href={repositoryData?.url} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={repositoryData?.url || "https://github.com/GOlivierNation/DevOpsHackthon"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <ExternalLink className="w-4 h-4 mr-1" />
                   Open GitHub
                 </a>
