@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: devops-hackathon-pipeline
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AWS_REGION
+        value: us-west-2
+      - key: AWS_ACCOUNT_ID
+        sync: false
+      - key: EKS_CLUSTER_NAME
+        sync: false

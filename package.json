@@ -1,9 +1,10 @@
 {
-  "name": "devops-pipeline-app",
+  "name": "devops-hackathon-pipeline",
   "version": "1.2.3",
-  "description": "Complete DevOps CI/CD pipeline demonstration with Next.js",
+  "description": "Complete DevOps CI/CD pipeline demonstration for hackathon",
   "keywords": [
     "devops",
+    "hackathon",
     "ci-cd",
     "docker",
     "kubernetes",
@@ -14,19 +15,21 @@
     "aws",
     "eks"
   ],
-  "homepage": "https://github.com/your-org/devops-pipeline-app#readme",
+  "homepage": "https://github.com/GOlivierNation/DevOpsHackthon#readme",
   "bugs": {
-    "url": "https://github.com/your-org/devops-pipeline-app/issues"
+    "url": "https://github.com/GOlivierNation/DevOpsHackthon/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/devops-pipeline-app.git"
+    "url": "https://github.com/GOlivierNation/DevOpsHackthon.git"
   },
   "license": "MIT",
-  "author": "DevOps Team",
+  "author": "GOlivierNation",
   "main": "index.js",
   "scripts": {
     "build": "next build",
+    "deploy:railway": "railway up",
+    "deploy:vercel": "vercel --prod",
     "dev": "next dev",
     "docker:build": "docker build -t devops-pipeline-app .",
     "docker:run": "docker run -p 3000:3000 devops-pipeline-app",
@@ -36,6 +39,7 @@
     "lint:fix": "next lint --fix",
     "security:audit": "npm audit --audit-level high",
     "security:fix": "npm audit fix",
+    "setup:local": "chmod +x scripts/setup.sh && ./scripts/setup.sh",
     "start": "next start",
     "test": "jest",
     "test:coverage": "jest --coverage",
@@ -43,6 +47,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-progress": "^1.0.3",
     "@radix-ui/react-tabs": "^1.0.4",
     "class-variance-authority": "^0.7.1",

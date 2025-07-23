@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { Cloud, Server, Activity, Network, RefreshCw, ExternalLink } from "lucide-react"
+import { Cloud, Server, Activity, Network, RefreshCw, ExternalLink, AlertTriangle } from "lucide-react"
 
 interface ClusterModalProps {
   open: boolean
@@ -15,20 +15,35 @@ interface ClusterModalProps {
 
 export function ClusterModal({ open, onOpenChange }: ClusterModalProps) {
   const [clusterData, setClusterData] = useState<any>(null)
+  const [awsConsoleData, setAwsConsoleData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
   const fetchClusterData = async () => {
     setLoading(true)
     try {
-      const response = await fetch("/api/cluster")
-      if (response.ok) {
-        const data = await response.json()
+      const [clusterResponse, awsResponse] = await Promise.all([fetch("/api/cluster"), fetch("/api/aws/console")])
+
+      if (clusterResponse.ok) {
+        const data = await clusterResponse.json()
         setClusterData(data)
+      }
+
+      if (awsResponse.ok) {
+        const awsData = await awsResponse.json()
+        setAwsConsoleData(awsData)
       }
     } catch (error) {
       console.error("Failed to fetch cluster data:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const openAWSConsole = () => {
+    if (awsConsoleData?.directClusterUrl) {
+      window.open(awsConsoleData.directClusterUrl, "_blank")
+    } else {
+      window.open(awsConsoleData?.consoleUrls?.eks || "https://console.aws.amazon.com/eks/", "_blank")
     }
   }
 
@@ -51,7 +66,7 @@ export function ClusterModal({ open, onOpenChange }: ClusterModalProps) {
                 {clusterData?.name || "Kubernetes Cluster"}
               </DialogTitle>
               <DialogDescription>
-                {clusterData?.provider} cluster in {clusterData?.region}
+                {clusterData?.provider} cluster in {awsConsoleData?.region || clusterData?.region}
               </DialogDescription>
             </div>
             <div className="flex gap-2">
@@ -59,12 +74,31 @@ export function ClusterModal({ open, onOpenChange }: ClusterModalProps) {
                 <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} />
                 Refresh
               </Button>
-              <Button variant="outline" size="sm">
-                <ExternalLink className="w-4 h-4 mr-1" />
-                AWS Console
-              </Button>
+              {awsConsoleData?.isConfigured ? (
+                <Button variant="outline" size="sm" onClick={openAWSConsole}>
+                  <ExternalLink className="w-4 h-4 mr-1" />
+                  AWS Console
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" disabled>
+                  <AlertTriangle className="w-4 h-4 mr-1" />
+                  Configure AWS
+                </Button>
+              )}
             </div>
           </div>
+          {!awsConsoleData?.isConfigured && (
+            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center gap-2 text-yellow-800">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="text-sm font-medium">AWS Configuration Required</span>
+              </div>
+              <p className="text-xs text-yellow-700 mt-1">
+                Set AWS_REGION, AWS_ACCOUNT_ID, and EKS_CLUSTER_NAME environment variables to enable AWS Console
+                integration.
+              </p>
+            </div>
+          )}
         </DialogHeader>
 
         {loading ? (
@@ -74,11 +108,12 @@ export function ClusterModal({ open, onOpenChange }: ClusterModalProps) {
           </div>
         ) : (
           <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="nodes">Nodes</TabsTrigger>
               <TabsTrigger value="workloads">Workloads</TabsTrigger>
               <TabsTrigger value="networking">Network</TabsTrigger>
+              <TabsTrigger value="aws">AWS Services</TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
             </TabsList>
 
@@ -97,6 +132,10 @@ export function ClusterModal({ open, onOpenChange }: ClusterModalProps) {
                     <div className="flex justify-between">
                       <span>Status:</span>
                       <Badge variant="default">{clusterData?.status}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Region:</span>
+                      <span className="font-medium">{awsConsoleData?.region || clusterData?.region}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Nodes:</span>
@@ -257,6 +296,104 @@ export function ClusterModal({ open, onOpenChange }: ClusterModalProps) {
                     </div>
                   </div>
                 </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="aws" className="space-y-4">
+              <div className="p-4 border rounded-lg">
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <Cloud className="w-4 h-4" />
+                  AWS Services Quick Access
+                </h4>
+                {awsConsoleData?.isConfigured ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="justify-start bg-transparent"
+                      onClick={() => window.open(awsConsoleData.consoleUrls.eks, "_blank")}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-2" />
+                      EKS Clusters
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="justify-start bg-transparent"
+                      onClick={() => window.open(awsConsoleData.consoleUrls.ec2, "_blank")}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-2" />
+                      EC2 Instances
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="justify-start bg-transparent"
+                      onClick={() => window.open(awsConsoleData.consoleUrls.cloudwatch, "_blank")}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-2" />
+                      CloudWatch
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="justify-start bg-transparent"
+                      onClick={() => window.open(awsConsoleData.consoleUrls.vpc, "_blank")}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-2" />
+                      VPC
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="justify-start bg-transparent"
+                      onClick={() => window.open(awsConsoleData.consoleUrls.iam, "_blank")}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-2" />
+                      IAM Roles
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="justify-start bg-transparent"
+                      onClick={() => window.open(awsConsoleData.consoleUrls.s3, "_blank")}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-2" />
+                      S3 Buckets
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="justify-start bg-transparent"
+                      onClick={() => window.open(awsConsoleData.consoleUrls.rds, "_blank")}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-2" />
+                      RDS Databases
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="justify-start bg-transparent"
+                      onClick={() => window.open(awsConsoleData.consoleUrls.lambda, "_blank")}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-2" />
+                      Lambda Functions
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                    <h5 className="font-medium text-gray-900 mb-2">AWS Configuration Required</h5>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Configure the following environment variables to enable AWS Console integration:
+                    </p>
+                    <div className="bg-gray-50 p-4 rounded-lg text-left">
+                      <code className="text-xs block mb-1">AWS_REGION=us-west-2</code>
+                      <code className="text-xs block mb-1">AWS_ACCOUNT_ID=123456789012</code>
+                      <code className="text-xs block">EKS_CLUSTER_NAME=production-cluster</code>
+                    </div>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
