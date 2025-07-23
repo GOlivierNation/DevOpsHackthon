@@ -763,22 +763,46 @@ export default function DevOpsPipelineDashboard() {
                       Documentation
                     </h4>
                     <div className="space-y-2">
-                      <Button variant="outline" className="w-full justify-start bg-transparent">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start bg-transparent"
+                        onClick={() => window.open("/docs/setup-guide", "_blank")}
+                      >
                         📋 Project Setup Guide
                       </Button>
-                      <Button variant="outline" className="w-full justify-start bg-transparent">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start bg-transparent"
+                        onClick={() => window.open("/docs/pipeline-config", "_blank")}
+                      >
                         🔧 Pipeline Configuration
                       </Button>
-                      <Button variant="outline" className="w-full justify-start bg-transparent">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start bg-transparent"
+                        onClick={() => window.open("/docs/docker-practices", "_blank")}
+                      >
                         🐳 Docker Best Practices
                       </Button>
-                      <Button variant="outline" className="w-full justify-start bg-transparent">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start bg-transparent"
+                        onClick={() => window.open("/docs/kubernetes-deployment", "_blank")}
+                      >
                         ☸️ Kubernetes Deployment
                       </Button>
-                      <Button variant="outline" className="w-full justify-start bg-transparent">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start bg-transparent"
+                        onClick={() => window.open("/docs/monitoring-setup", "_blank")}
+                      >
                         📊 Monitoring Setup
                       </Button>
-                      <Button variant="outline" className="w-full justify-start bg-transparent">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start bg-transparent"
+                        onClick={() => window.open("/docs/troubleshooting", "_blank")}
+                      >
                         🚨 Troubleshooting Guide
                       </Button>
                     </div>
