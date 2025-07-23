@@ -72,7 +72,17 @@ export function ImagesModal({ open, onOpenChange }: ImagesModalProps) {
                 <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} />
                 Refresh
               </Button>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  window.open(
+                    imagesData?.registryUrl ||
+                      "https://github.com/GOlivierNation/DevOpsHackthon/pkgs/container/devops-pipeline-app",
+                    "_blank",
+                  )
+                }
+              >
                 <ExternalLink className="w-4 h-4 mr-1" />
                 Registry
               </Button>

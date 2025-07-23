@@ -3,7 +3,8 @@ import { NextResponse } from "next/server"
 export async function GET() {
   try {
     const imagesInfo = {
-      registry: "ghcr.io/your-org",
+      registry: "ghcr.io/GOlivierNation",
+      registryUrl: "https://github.com/GOlivierNation/DevOpsHackthon/pkgs/container/devops-pipeline-app",
       totalImages: 45,
       totalSize: "2.1 GB",
       images: [
