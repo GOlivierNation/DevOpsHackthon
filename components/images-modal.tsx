@@ -36,7 +36,7 @@ export function ImagesModal({ open, onOpenChange }: ImagesModalProps) {
   const openRegistry = () => {
     const registryUrl =
       imagesData?.registryUrl ||
-      "https://github.com/GOlivierNation/DevOpsHackthon/pkgs/container/devops-hackathon-pipeline"
+      "https://github.com/users/GOlivierNation/packages/container/package/devops-hackathon-pipeline"
     window.open(registryUrl, "_blank", "noopener,noreferrer")
   }
 

@@ -4,7 +4,7 @@ export async function GET() {
   try {
     const imagesInfo = {
       registry: "ghcr.io/goliviernation",
-      registryUrl: "https://github.com/GOlivierNation/DevOpsHackthon/pkgs/container/devops-hackathon-pipeline",
+      registryUrl: "https://github.com/users/GOlivierNation/packages/container/package/devops-hackathon-pipeline",
       repositoryName: "DevOpsHackthon",
       packageName: "devops-hackathon-pipeline",
       totalImages: 12,
