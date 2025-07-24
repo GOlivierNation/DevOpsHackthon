@@ -147,21 +147,13 @@ export async function POST(request: Request) {
         }, { status: 429 })
       
       default:
-        // Simulate pipeline trigger
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-
-        const newRun = {
-          id: `#${Math.floor(Math.random() * 9000) + 1000}`,
-          status: "running",
-          branch: branch,
-          time: "just now",
-          duration: "0s",
-          commit: Math.random().toString(36).substring(2, 9),
-          author: triggeredBy,
-          message: "Manual trigger",
-        }
-
-        return NextResponse.json(newRun, { status: 201 })
+        return NextResponse.json({
+          success: true,
+          message: 'Pipeline triggered successfully',
+          runId,
+          runNumber,
+          estimatedDuration
+        })
     }
   } catch (error) {
     console.error('Error triggering pipeline:', error)

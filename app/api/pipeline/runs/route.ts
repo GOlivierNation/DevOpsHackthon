@@ -27,48 +27,125 @@ interface PipelineRun {
 }
 
 // Mock pipeline runs data
-const mockPipelineRuns = [
-  {
-    id: "#1234",
-    status: "success",
-    branch: "main",
-    time: "2 min ago",
-    duration: "3m 45s",
-    commit: "abc123f",
-    author: "john.doe",
-    message: "Fix authentication bug",
-  },
-  {
-    id: "#1233",
-    status: "running",
-    branch: "feature/auth",
-    time: "5 min ago",
-    duration: "2m 30s",
-    commit: "def456a",
-    author: "jane.smith",
-    message: "Add OAuth integration",
-  },
-  {
-    id: "#1232",
-    status: "failed",
-    branch: "feature/ui",
-    time: "1 hour ago",
-    duration: "1m 15s",
-    commit: "ghi789b",
-    author: "bob.wilson",
-    message: "Update dashboard components",
-  },
-  {
-    id: "#1231",
-    status: "success",
-    branch: "main",
-    time: "4 hours ago",
-    duration: "3m 55s",
-    commit: "jkl012c",
-    author: "alice.brown",
-    message: "Performance improvements",
-  },
-]
+const generateMockRuns = (): PipelineRun[] => {
+  const statuses: PipelineRun['status'][] = ['success', 'failure', 'running', 'pending']
+  const branches = ['main', 'develop', 'feature/auth', 'feature/monitoring', 'hotfix/security']
+  const authors = ['Olivier', 'DevOps Bot', 'CI System', 'Developer']
+  const environments = ['production', 'staging', 'development']
+
+  const runs: PipelineRun[] = []
+
+  for (let i = 1; i <= 20; i++) {
+    const status = i === 1 ? 'running' : statuses[Math.floor(Math.random() * statuses.length)]
+    const branch = branches[Math.floor(Math.random() * branches.length)]
+    const author = authors[Math.floor(Math.random() * authors.length)]
+    const environment = environments[Math.floor(Math.random() * environments.length)]
+    
+    const startTime = new Date(Date.now() - (i * 3600000) - Math.random() * 3600000).toISOString()
+    const duration = status === 'running' ? undefined : Math.floor(Math.random() * 600) + 60
+    const endTime = duration ? new Date(new Date(startTime).getTime() + duration * 1000).toISOString() : undefined
+    
+    const stages = [
+      {
+        name: 'Checkout',
+        status: status === 'pending' ? 'pending' : 'success' as const,
+        duration: status === 'pending' ? undefined : 15,
+        startTime: status === 'pending' ? undefined : startTime,
+        endTime: status === 'pending' ? undefined : new Date(new Date(startTime).getTime() + 15000).toISOString(),
+        logs: status === 'pending' ? undefined : [
+          'Checking out repository...',
+          'Repository checked out successfully',
+          'Setting up workspace...'
+        ]
+      },
+      {
+        name: 'Install Dependencies',
+        status: status === 'pending' ? 'pending' : (status === 'running' && i === 1 ? 'running' : 'success') as const,
+        duration: status === 'pending' ? undefined : (status === 'running' && i === 1 ? undefined : 45),
+        startTime: status === 'pending' ? undefined : new Date(new Date(startTime).getTime() + 15000).toISOString(),
+        endTime: status === 'pending' || (status === 'running' && i === 1) ? undefined : new Date(new Date(startTime).getTime() + 60000).toISOString(),
+        logs: status === 'pending' ? undefined : [
+          'Installing npm dependencies...',
+          'npm install completed',
+          'Dependencies cached successfully'
+        ]
+      },
+      {
+        name: 'Run Tests',
+        status: status === 'pending' || (status === 'running' && i === 1) ? 'pending' : (status === 'failure' ? 'failure' : 'success') as const,
+        duration: status === 'pending' || (status === 'running' && i === 1) ? undefined : (status === 'failure' ? 30 : 90),
+        startTime: status === 'pending' || (status === 'running' && i === 1) ? undefined : new Date(new Date(startTime).getTime() + 60000).toISOString(),
+        endTime: status === 'pending' || (status === 'running' && i === 1) ? undefined : new Date(new Date(startTime).getTime() + 150000).toISOString(),
+        logs: status === 'pending' || (status === 'running' && i === 1) ? undefined : 
+          status === 'failure' ? [
+            'Running test suite...',
+            'Test failed: Authentication test',
+            'Error: Expected 200 but got 401'
+          ] : [
+            'Running test suite...',
+            'All tests passed successfully',
+            'Coverage: 95.2%'
+          ]
+      },
+      {
+        name: 'Build',
+        status: status === 'pending' || (status === 'running' && i === 1) || status === 'failure' ? 'pending' : 'success' as const,
+        duration: status === 'pending' || (status === 'running' && i === 1) || status === 'failure' ? undefined : 120,
+        startTime: status === 'pending' || (status === 'running' && i === 1) || status === 'failure' ? undefined : new Date(new Date(startTime).getTime() + 150000).toISOString(),
+        endTime: status === 'pending' || (status === 'running' && i === 1) || status === 'failure' ? undefined : new Date(new Date(startTime).getTime() + 270000).toISOString(),
+        logs: status === 'pending' || (status === 'running' && i === 1) || status === 'failure' ? undefined : [
+          'Building application...',
+          'Docker image built successfully',
+          'Image pushed to registry'
+        ]
+      },
+      {
+        name: 'Deploy',
+        status: status === 'pending' || (status === 'running' && i === 1) || status === 'failure' ? 'pending' : 'success' as const,
+        duration: status === 'pending' || (status === 'running' && i === 1) || status === 'failure' ? undefined : 60,
+        startTime: status === 'pending' || (status === 'running' && i === 1) || status === 'failure' ? undefined : new Date(new Date(startTime).getTime() + 270000).toISOString(),
+        endTime: status === 'pending' || (status === 'running' && i === 1) || status === 'failure' ? undefined : new Date(new Date(startTime).getTime() + 330000).toISOString(),
+        logs: status === 'pending' || (status === 'running' && i === 1) || status === 'failure' ? undefined : [
+          'Deploying to ' + environment + '...',
+          'Deployment successful',
+          'Health checks passed'
+        ]
+      }
+    ]
+    
+    runs.push({
+      id: `run-${i.toString().padStart(3, '0')}`,
+      number: 1000 - i + 1,
+      status,
+      branch,
+      commit: {
+        sha: Math.random().toString(36).substring(2, 9),
+        message: [
+          'Add authentication middleware',
+          'Fix memory leak in pipeline',
+          'Update dependencies',
+          'Improve error handling',
+          'Add monitoring dashboard',
+          'Fix security vulnerability',
+          'Optimize database queries',
+          'Add unit tests',
+          'Update documentation',
+          'Refactor API endpoints'
+        ][Math.floor(Math.random() * 10)],
+        author,
+        timestamp: startTime
+      },
+      stages,
+      startTime,
+      endTime,
+      duration,
+      triggeredBy: author,
+      environment
+    })
+  }
+
+  return runs
+}
 
 export async function GET(request: Request) {
   try {
@@ -79,7 +156,7 @@ export async function GET(request: Request) {
     const branch = searchParams.get('branch')
     const environment = searchParams.get('environment')
     
-    let runs = mockPipelineRuns
+    let runs = generateMockRuns()
     
     // Apply filters
     if (status) {
@@ -127,10 +204,6 @@ export async function GET(request: Request) {
         branches: ['main', 'develop', 'feature/auth', 'feature/monitoring', 'hotfix/security'],
         environments: ['production', 'staging', 'development']
       }
-    }, {
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-      },
     })
   } catch (error) {
     console.error('Error fetching pipeline runs:', error)

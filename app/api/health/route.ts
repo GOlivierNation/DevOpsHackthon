@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import os from 'os'
 
 interface HealthCheck {
   status: 'healthy' | 'unhealthy'
@@ -17,9 +16,8 @@ interface HealthStatus {
     database: HealthCheck
     redis: HealthCheck
     external_services: HealthCheck
-    memory: { used: number, total: number, percentage: number }
-    disk: { freeSpace: number }
-    cpu: { load: number, cores: number }
+    memory: HealthCheck
+    disk: HealthCheck
   }
 }
 
@@ -87,37 +85,54 @@ async function checkExternalServices(): Promise<HealthCheck> {
 }
 
 // Check memory usage
-function checkMemory(): { used: number, total: number, percentage: number } {
-  const memUsage = process.memoryUsage()
-  const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024)
-  const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024)
-  const usage = (heapUsedMB / heapTotalMB) * 100
-  
-  return {
-    used: heapUsedMB,
-    total: heapTotalMB,
-    percentage: Math.round(usage)
+function checkMemory(): HealthCheck {
+  try {
+    const memUsage = process.memoryUsage()
+    const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024)
+    const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024)
+    const usage = (heapUsedMB / heapTotalMB) * 100
+    
+    if (usage > 90) {
+      return {
+        status: 'unhealthy',
+        message: `High memory usage: ${usage.toFixed(1)}%`
+      }
+    }
+    
+    return {
+      status: 'healthy',
+      message: `Memory usage: ${usage.toFixed(1)}% (${heapUsedMB}MB/${heapTotalMB}MB)`
+    }
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      message: 'Unable to check memory usage'
+    }
   }
 }
 
 // Check disk space (simulated)
-function checkDisk(): { freeSpace: number } {
-  // Simulate disk space check
-  const freeSpace = Math.random() * 100
-  
-  return {
-    freeSpace: Math.round(freeSpace)
-  }
-}
-
-// Check CPU load (simulated)
-function checkCPU(): { load: number, cores: number } {
-  const load = Math.random() * 100
-  const cores = os.cpus().length
-  
-  return {
-    load: Math.round(load),
-    cores
+function checkDisk(): HealthCheck {
+  try {
+    // Simulate disk space check
+    const freeSpace = Math.random() * 100
+    
+    if (freeSpace < 10) {
+      return {
+        status: 'unhealthy',
+        message: `Low disk space: ${freeSpace.toFixed(1)}% free`
+      }
+    }
+    
+    return {
+      status: 'healthy',
+      message: `Disk space: ${freeSpace.toFixed(1)}% free`
+    }
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      message: 'Unable to check disk space'
+    }
   }
 }
 
@@ -134,15 +149,13 @@ export async function GET() {
     
     const memory = checkMemory()
     const disk = checkDisk()
-    const cpu = checkCPU()
     
     const checks = {
       database,
       redis,
       external_services: externalServices,
       memory,
-      disk,
-      cpu
+      disk
     }
     
     // Determine overall health status
@@ -152,7 +165,7 @@ export async function GET() {
       status: allHealthy ? 'healthy' : 'unhealthy',
       timestamp: new Date().toISOString(),
       uptime: Math.floor(process.uptime()),
-      version: process.env.APP_VERSION || '1.2.3',
+      version: process.env.APP_VERSION || '1.0.0',
       environment: process.env.NODE_ENV || 'development',
       checks
     }
@@ -182,16 +195,15 @@ export async function GET() {
         status: 'unhealthy',
         timestamp: new Date().toISOString(),
         uptime: Math.floor(process.uptime()),
-        version: process.env.APP_VERSION || '1.2.3',
+        version: process.env.APP_VERSION || '1.0.0',
         environment: process.env.NODE_ENV || 'development',
         error: 'Health check system failure',
         checks: {
           database: { status: 'unhealthy', message: 'Health check failed' },
           redis: { status: 'unhealthy', message: 'Health check failed' },
           external_services: { status: 'unhealthy', message: 'Health check failed' },
-          memory: { used: 0, total: 0, percentage: 0 },
-          disk: { freeSpace: 0 },
-          cpu: { load: 0, cores: 0 }
+          memory: { status: 'unhealthy', message: 'Health check failed' },
+          disk: { status: 'unhealthy', message: 'Health check failed' }
         }
       },
       { status: 503 }

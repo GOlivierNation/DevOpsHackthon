@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { GitBranch, GitCommit, Users, Code, ExternalLink, RefreshCw } from "lucide-react"
+import { GitBranch, GitCommit, Users, Code, ExternalLink, RefreshCw } from 'lucide-react'
 
 interface RepositoryModalProps {
   open: boolean
