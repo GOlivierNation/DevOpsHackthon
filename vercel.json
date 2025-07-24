@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "devops-hackathon-pipeline",
   "builds": [
     {
       "src": "package.json",
@@ -20,20 +19,19 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "functions": {
-    "app/api/**/*.ts": {
-      "maxDuration": 30
+  "build": {
+    "env": {
+      "NEXT_TELEMETRY_DISABLED": "1"
     }
   },
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
-      ]
-    }
-  ]
-}
+  "functions": {
+    "app/api/health/route.ts": {
+      "maxDuration": 10
+    },
+    "app/api/metrics/route.ts": {
+      "maxDuration": 15
+    },
+    "app/api/pipeline/runs/route.ts": {
+      "maxDuration": 20
+    },
+    "app/api/pipeline

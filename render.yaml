@@ -1,16 +1,25 @@
 services:
   - type: web
-    name: devops-hackathon-pipeline
+    name: devops-pipeline
     env: node
     plan: free
     buildCommand: npm install && npm run build
     startCommand: npm start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
       - key: AWS_REGION
         value: us-west-2
       - key: AWS_ACCOUNT_ID
-        sync: false
+        value: "123456789012"
       - key: EKS_CLUSTER_NAME
-        sync: false
+        value: production-cluster
+    autoDeploy: true
+    branch: main
+    rootDir: .
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      targetMemoryPercent: 80
+      targetCPUPercent: 80

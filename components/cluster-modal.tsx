@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { Cloud, Server, Activity, Network, RefreshCw, ExternalLink, AlertTriangle } from "lucide-react"
+import { Cloud, Server, Activity, Network, RefreshCw, ExternalLink, AlertTriangle } from 'lucide-react'
 
 interface ClusterModalProps {
   open: boolean
