@@ -1,39 +1,50 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Settings, GitBranch, CheckCircle, AlertCircle } from "lucide-react"
-import Link from "next/link"
-
 export default function PipelineConfigPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">🔧 Pipeline Configuration</h1>
-            <p className="text-gray-600">Complete guide to CI/CD pipeline setup</p>
-          </div>
-        </div>
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">🔧 Pipeline Configuration</h1>
+          
+          <div className="prose max-w-none">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">GitHub Actions Workflow</h2>
+            <p className="mb-4">Our CI/CD pipeline is configured using GitHub Actions with the following stages:</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                <h3 className="font-semibold text-green-800 mb-2">🔨 Build Stage</h3>
+                <ul className="text-sm text-green-700">
+                  <li>• Code checkout</li>
+                  <li>• Install dependencies</li>
+                  <li>• Run linting</li>
+                  <li>• Execute tests</li>
+                  <li>• Build application</li>
+                </ul>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">📦 Package Stage</h3>
+                <ul className="text-sm text-blue-700">
+                  <li>• Build Docker image</li>
+                  <li>• Security scanning</li>
+                  <li>• Tag with version</li>
+                  <li>• Push to registry</li>
+                </ul>
+              </div>
+              <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
+                <h3 className="font-semibold text-purple-800 mb-2">🚀 Deploy Stage</h3>
+                <ul className="text-sm text-purple-700">
+                  <li>• Deploy to staging</li>
+                  <li>• Run integration tests</li>
+                  <li>• Deploy to production</li>
+                  <li>• Health checks</li>
+                </ul>
+              </div>
+            </div>
 
-        {/* GitHub Actions Workflow */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5 text-blue-600" />
-              GitHub Actions Workflow
-            </CardTitle>
-            <CardDescription>Automated CI/CD pipeline configuration</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-              <pre>{`name: DevOps CI/CD Pipeline
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Workflow Configuration</h2>
+            <p className="mb-4">The pipeline is defined in <code className="bg-gray-100 px-2 py-1 rounded">.github/workflows/ci-cd.yml</code>:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6 overflow-x-auto">
+              <pre className="text-sm">
+{`name: CI/CD Pipeline
 
 on:
   push:
@@ -41,226 +52,87 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: \${{ github.repository }}
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Run tests
-      run: npm test -- --coverage
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run build
 
-  build:
-    needs: [test]
+  docker:
+    needs: test
     runs-on: ubuntu-latest
     steps:
-    - name: Build Docker image
-      run: docker build -t \${{ env.IMAGE_NAME }} .
-    
-    - name: Push to registry
-      run: docker push \${{ env.IMAGE_NAME }}
+      - uses: actions/checkout@v3
+      - name: Build Docker image
+        run: docker build -t devops-pipeline .
+      - name: Security scan
+        run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image devops-pipeline
 
   deploy:
-    needs: [build]
+    needs: [test, docker]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
-    - name: Deploy to production
-      run: kubectl apply -f k8s/`}</pre>
+      - uses: actions/checkout@v3
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: \${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: \${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: \${{ secrets.VERCEL_PROJECT_ID }}`}
+              </pre>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Pipeline Stages */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GitBranch className="w-5 h-5 text-purple-600" />
-              Pipeline Stages
-            </CardTitle>
-            <CardDescription>Understanding each stage of the pipeline</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border rounded-lg bg-green-50">
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <h4 className="font-semibold">1. Test Stage</h4>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div>• Code checkout</div>
-                  <div>• Dependency installation</div>
-                  <div>• Unit tests execution</div>
-                  <div>• Code coverage report</div>
-                  <div>• Security audit</div>
-                </div>
-                <Badge variant="secondary" className="mt-3">
-                  Duration: ~2 minutes
-                </Badge>
-              </div>
-
-              <div className="p-4 border rounded-lg bg-blue-50">
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle className="w-5 h-5 text-blue-600" />
-                  <h4 className="font-semibold">2. Build Stage</h4>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div>• Docker image build</div>
-                  <div>• Multi-stage optimization</div>
-                  <div>• Security scanning</div>
-                  <div>• Image tagging</div>
-                  <div>• Registry push</div>
-                </div>
-                <Badge variant="secondary" className="mt-3">
-                  Duration: ~3 minutes
-                </Badge>
-              </div>
-
-              <div className="p-4 border rounded-lg bg-purple-50">
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle className="w-5 h-5 text-purple-600" />
-                  <h4 className="font-semibold">3. Deploy Stage</h4>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div>• Kubernetes deployment</div>
-                  <div>• Rolling updates</div>
-                  <div>• Health checks</div>
-                  <div>• Service exposure</div>
-                  <div>• Monitoring setup</div>
-                </div>
-                <Badge variant="secondary" className="mt-3">
-                  Duration: ~1 minute
-                </Badge>
-              </div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Required Secrets</h2>
+            <p className="mb-4">Configure these secrets in your GitHub repository settings:</p>
+            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+              <ul className="list-disc pl-6">
+                <li><code className="bg-gray-100 px-2 py-1 rounded">VERCEL_TOKEN</code> - Your Vercel authentication token</li>
+                <li><code className="bg-gray-100 px-2 py-1 rounded">VERCEL_ORG_ID</code> - Your Vercel organization ID</li>
+                <li><code className="bg-gray-100 px-2 py-1 rounded">VERCEL_PROJECT_ID</code> - Your Vercel project ID</li>
+                <li><code className="bg-gray-100 px-2 py-1 rounded">DOCKER_USERNAME</code> - Docker Hub username (optional)</li>
+                <li><code className="bg-gray-100 px-2 py-1 rounded">DOCKER_PASSWORD</code> - Docker Hub password (optional)</li>
+              </ul>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Environment Configuration */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Environment Configuration</CardTitle>
-            <CardDescription>Setting up different environments</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-3 text-green-700">Production Environment</h4>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    • Branch: <code>main</code>
-                  </div>
-                  <div>• Auto-deploy: Enabled</div>
-                  <div>• Replicas: 3</div>
-                  <div>• Health checks: Strict</div>
-                  <div>• Monitoring: Full</div>
-                </div>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-3 text-blue-700">Staging Environment</h4>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    • Branch: <code>develop</code>
-                  </div>
-                  <div>• Auto-deploy: Enabled</div>
-                  <div>• Replicas: 1</div>
-                  <div>• Health checks: Basic</div>
-                  <div>• Monitoring: Limited</div>
-                </div>
-              </div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Branch Protection Rules</h2>
+            <p className="mb-4">Recommended branch protection settings for the main branch:</p>
+            <ul className="list-disc pl-6 mb-6">
+              <li>Require pull request reviews before merging</li>
+              <li>Require status checks to pass before merging</li>
+              <li>Require branches to be up to date before merging</li>
+              <li>Include administrators in restrictions</li>
+            </ul>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Monitoring and Notifications</h2>
+            <p className="mb-4">The pipeline includes monitoring and notification features:</p>
+            <ul className="list-disc pl-6 mb-6">
+              <li>Slack notifications for build status</li>
+              <li>Email alerts for deployment failures</li>
+              <li>Performance metrics collection</li>
+              <li>Security vulnerability reporting</li>
+            </ul>
+
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+              <h3 className="font-semibold text-blue-800 mb-2">💡 Pro Tips:</h3>
+              <ul className="list-disc pl-6 text-blue-700">
+                <li>Use semantic versioning for releases</li>
+                <li>Keep your secrets secure and rotate them regularly</li>
+                <li>Monitor pipeline performance and optimize as needed</li>
+                <li>Use feature flags for safer deployments</li>
+              </ul>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Secrets Configuration */}
-        <Card>
-          <CardHeader>
-            <CardTitle>GitHub Secrets Configuration</CardTitle>
-            <CardDescription>Required secrets for the pipeline</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle className="w-4 h-4 text-yellow-600" />
-                  <span className="font-semibold text-yellow-800">Required Secrets</span>
-                </div>
-                <div className="text-sm text-yellow-700">
-                  Add these secrets in GitHub Repository → Settings → Secrets and variables → Actions
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <h4 className="font-semibold">AWS Secrets</h4>
-                  <div className="bg-gray-50 p-3 rounded font-mono text-sm space-y-1">
-                    <div>AWS_ACCESS_KEY_ID</div>
-                    <div>AWS_SECRET_ACCESS_KEY</div>
-                    <div>AWS_REGION</div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <h4 className="font-semibold">Registry Secrets</h4>
-                  <div className="bg-gray-50 p-3 rounded font-mono text-sm space-y-1">
-                    <div>GITHUB_TOKEN (auto-provided)</div>
-                    <div>DOCKER_USERNAME (optional)</div>
-                    <div>DOCKER_PASSWORD (optional)</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Troubleshooting */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Common Pipeline Issues</CardTitle>
-            <CardDescription>Solutions to frequent problems</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="border-l-4 border-red-500 pl-4">
-                <h4 className="font-semibold text-red-700">Build Failures</h4>
-                <div className="text-sm text-gray-600 mt-1">
-                  • Check Node.js version compatibility
-                  <br />• Verify all dependencies are listed
-                  <br />• Review TypeScript errors
-                </div>
-              </div>
-              <div className="border-l-4 border-yellow-500 pl-4">
-                <h4 className="font-semibold text-yellow-700">Test Failures</h4>
-                <div className="text-sm text-gray-600 mt-1">
-                  • Update test snapshots
-                  <br />• Check environment variables
-                  <br />• Verify mock configurations
-                </div>
-              </div>
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h4 className="font-semibold text-blue-700">Deployment Issues</h4>
-                <div className="text-sm text-gray-600 mt-1">
-                  • Verify Kubernetes cluster access
-                  <br />• Check image registry permissions
-                  <br />• Review resource quotas
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -1,77 +1,38 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Activity, BarChart3, AlertTriangle, TrendingUp } from "lucide-react"
-import Link from "next/link"
-import { job } from "@/utils/job" // Declare the variable here
-
 export default function MonitoringSetupPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">📊 Monitoring Setup</h1>
-            <p className="text-gray-600">Complete monitoring stack with Prometheus and Grafana</p>
-          </div>
-        </div>
-
-        {/* Monitoring Stack Overview */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-blue-600" />
-              Monitoring Stack Architecture
-            </CardTitle>
-            <CardDescription>Comprehensive observability solution</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <Activity className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <h4 className="font-semibold">Prometheus</h4>
-                <p className="text-sm text-gray-600">Metrics Collection & Storage</p>
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">📊 Monitoring Setup</h1>
+          
+          <div className="prose max-w-none">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Monitoring Stack Overview</h2>
+            <p className="mb-4">Our comprehensive monitoring solution includes:</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg text-center">
+                <div className="text-lg font-bold text-orange-600">Prometheus</div>
+                <div className="text-sm text-orange-700">Metrics Collection</div>
               </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <BarChart3 className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <h4 className="font-semibold">Grafana</h4>
-                <p className="text-sm text-gray-600">Visualization & Dashboards</p>
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-center">
+                <div className="text-lg font-bold text-blue-600">Grafana</div>
+                <div className="text-sm text-blue-700">Visualization</div>
               </div>
-              <div className="text-center p-4 bg-red-50 rounded-lg">
-                <AlertTriangle className="w-8 h-8 text-red-600 mx-auto mb-2" />
-                <h4 className="font-semibold">AlertManager</h4>
-                <p className="text-sm text-gray-600">Alert Routing & Notifications</p>
+              <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-center">
+                <div className="text-lg font-bold text-red-600">AlertManager</div>
+                <div className="text-sm text-red-700">Notifications</div>
+              </div>
+              <div className="bg-green-50 border border-green-200 p-4 rounded-lg text-center">
+                <div className="text-lg font-bold text-green-600">Jaeger</div>
+                <div className="text-sm text-green-700">Tracing</div>
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-semibold mb-2">Data Flow</h4>
-              <div className="text-sm text-gray-600">
-                Application → Prometheus (scrape metrics) → Grafana (visualize) → AlertManager (notify)
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Prometheus Configuration */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-orange-600" />
-              Prometheus Configuration
-            </CardTitle>
-            <CardDescription>Metrics collection and storage setup</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-              <pre>{`global:
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Prometheus Configuration</h2>
+            <p className="mb-4">Prometheus scrape configuration:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6 overflow-x-auto">
+              <pre className="text-sm">
+{`global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
@@ -85,91 +46,154 @@ alerting:
           - alertmanager:9093
 
 scrape_configs:
-- job_name: 'kubernetes-pods'
-  kubernetes_sd_configs:
-  - role: pod
-  relabel_configs:
-  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-    action: keep
-    regex: true
-  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-    action: replace
-    target_label: __metrics_path__
-    regex: (.+)
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
 
-- job_name: 'devops-pipeline-app'
-  kubernetes_sd_configs:
-  - role: pod
-    namespaces:
-      names:
-      - production
-      - staging
-  relabel_configs:
-  - source_labels: [__meta_kubernetes_pod_label_app]
-    action: keep
-    regex: devops-pipeline-app`}</pre>
+  - job_name: 'devops-pipeline-app'
+    static_configs:
+      - targets: ['app:3000']
+    metrics_path: '/api/metrics'
+    scrape_interval: 10s
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true`}
+              </pre>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Grafana Dashboards */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-green-600" />
-              Grafana Dashboards
-            </CardTitle>
-            <CardDescription>Pre-configured dashboards for comprehensive monitoring</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-3">Application Dashboard</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Request Rate:</span>
-                    <Badge variant="outline">rate(http_requests_total[5m])</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Response Time:</span>
-                    <Badge variant="outline">histogram_quantile(0.95, ...)</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Error Rate:</span>
-                    <Badge variant="outline">rate(http_errors_total[5m])</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Availability:</span>
-                    <Badge variant="outline">{`up{job="${job}"}`}</Badge>
-                  </div>
-                </div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Grafana Dashboards</h2>
+            <p className="mb-4">Key dashboards for monitoring:</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">🎯 Application Metrics</h3>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Request rate and latency</li>
+                  <li>• Error rate and status codes</li>
+                  <li>• Database connection pool</li>
+                  <li>• Memory and CPU usage</li>
+                  <li>• Custom business metrics</li>
+                </ul>
               </div>
-
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-3">Infrastructure Dashboard</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>CPU Usage:</span>
-                    <Badge variant="outline">rate(container_cpu_usage...)</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Memory Usage:</span>
-                    <Badge variant="outline">container_memory_usage_bytes</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Network I/O:</span>
-                    <Badge variant="outline">rate(container_network...)</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Disk Usage:</span>
-                    <Badge variant="outline">container_fs_usage_bytes</Badge>
-                  </div>
-                </div>
+              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                <h3 className="font-semibold text-green-800 mb-2">🏗️ Infrastructure Metrics</h3>
+                <ul className="text-sm text-green-700 space-y-1">
+                  <li>• Node CPU, memory, disk usage</li>
+                  <li>• Network I/O and bandwidth</li>
+                  <li>• Kubernetes cluster health</li>
+                  <li>• Pod resource utilization</li>
+                  <li>• Load balancer metrics</li>
+                </ul>
               </div>
             </div>
 
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-              <pre>{`{
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Application Metrics</h2>
+            <p className="mb-4">Custom metrics endpoint implementation:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6 overflow-x-auto">
+              <pre className="text-sm">
+{`// app/api/metrics/route.ts
+import { NextResponse } from 'next/server'
+
+// Simulate metrics collection
+const metrics = {
+  http_requests_total: Math.floor(Math.random() * 10000),
+  http_request_duration_seconds: Math.random() * 2,
+  active_connections: Math.floor(Math.random() * 100),
+  memory_usage_bytes: Math.floor(Math.random() * 1000000000),
+  cpu_usage_percent: Math.random() * 100,
+}
+
+export async function GET() {
+  const prometheusMetrics = \`
+# HELP http_requests_total Total number of HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{\${metrics.http_requests_total}
+
+# HELP http_request_duration_seconds HTTP request duration
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds{\${metrics.http_request_duration_seconds}
+
+# HELP active_connections Number of active connections
+# TYPE active_connections gauge
+active_connections{\${metrics.active_connections}
+
+# HELP memory_usage_bytes Memory usage in bytes
+# TYPE memory_usage_bytes gauge
+memory_usage_bytes{\${metrics.memory_usage_bytes}
+
+# HELP cpu_usage_percent CPU usage percentage
+# TYPE cpu_usage_percent gauge
+cpu_usage_percent{\${metrics.cpu_usage_percent}
+\`
+
+  return new NextResponse(prometheusMetrics, {
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+    },
+  })
+}`}
+              </pre>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Alert Rules</h2>
+            <p className="mb-4">Critical alert configurations:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6 overflow-x-auto">
+              <pre className="text-sm">
+{`groups:
+  - name: application.rules
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors per second"
+
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }} seconds"
+
+      - alert: HighMemoryUsage
+        expr: memory_usage_bytes / 1024 / 1024 / 1024 > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}GB"
+
+      - alert: PodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Pod is crash looping"
+          description: "Pod {{ $labels.pod }} is restarting frequently"`}
+              </pre>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Grafana Dashboard JSON</h2>
+            <p className="mb-4">Sample dashboard configuration:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6 overflow-x-auto">
+              <pre className="text-sm">
+{`{
   "dashboard": {
     "title": "DevOps Pipeline Dashboard",
     "panels": [
@@ -179,257 +203,118 @@ scrape_configs:
         "targets": [
           {
             "expr": "rate(http_requests_total[5m])",
-            "legendFormat": "{{method}} {{status}}"
+            "legendFormat": "Requests/sec"
           }
         ]
       },
       {
-        "title": "Response Time P95",
+        "title": "Response Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          }
+        ]
+      },
+      {
+        "title": "Error Rate",
         "type": "singlestat",
         "targets": [
           {
-            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))"
+            "expr": "rate(http_requests_total{status=~\"5..\"}[5m])",
+            "legendFormat": "Error Rate"
           }
         ]
       }
     ]
   }
-}`}</pre>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Alert Rules */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
-              Alert Rules Configuration
-            </CardTitle>
-            <CardDescription>Proactive monitoring with intelligent alerts</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div className="p-4 bg-red-50 rounded-lg">
-                <h4 className="font-semibold text-red-700 mb-2">Critical Alerts</h4>
-                <div className="space-y-1 text-sm">
-                  <div>• High error rate (&gt; 10%)</div>
-                  <div>• Pod crash looping</div>
-                  <div>• Service unavailable</div>
-                  <div>• Memory usage &gt; 90%</div>
-                </div>
-              </div>
-              <div className="p-4 bg-yellow-50 rounded-lg">
-                <h4 className="font-semibold text-yellow-700 mb-2">Warning Alerts</h4>
-                <div className="space-y-1 text-sm">
-                  <div>• High memory usage (&gt; 80%)</div>
-                  <div>• Slow response time</div>
-                  <div>• High CPU usage</div>
-                  <div>• Disk space low</div>
-                </div>
-              </div>
+}`}
+              </pre>
             </div>
 
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-              <pre>{`groups:
-- name: devops-pipeline-alerts
-  rules:
-  - alert: HighErrorRate
-    expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
-    for: 5m
-    labels:
-      severity: critical
-    annotations:
-      summary: "High error rate detected"
-      description: "Error rate is {{ $value }} errors per second"
-  
-  - alert: HighMemoryUsage
-    expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.8
-    for: 10m
-    labels:
-      severity: warning
-    annotations:
-      summary: "High memory usage"
-      description: "Memory usage is above 80%"
-  
-  - alert: PodCrashLooping
-    expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
-    for: 5m
-    labels:
-      severity: critical
-    annotations:
-      summary: "Pod is crash looping"
-      description: "Pod {{ $labels.pod }} is restarting frequently"`}</pre>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Logging Configuration</h2>
+            <p className="mb-4">Structured logging setup:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6 overflow-x-auto">
+              <pre className="text-sm">
+{`// utils/logger.ts
+import winston from 'winston'
+
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.errors({ stack: true }),
+    winston.format.json()
+  ),
+  defaultMeta: {
+    service: 'devops-pipeline',
+    version: process.env.APP_VERSION || '1.0.0'
+  },
+  transports: [
+    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'logs/combined.log' }),
+    new winston.transports.Console({
+      format: winston.format.simple()
+    })
+  ]
+})
+
+export default logger`}
+              </pre>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Metrics Collection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-purple-600" />
-              Application Metrics
-            </CardTitle>
-            <CardDescription>Custom metrics exposed by the application</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-3">Business Metrics</h4>
-                  <div className="space-y-2 text-sm">
-                    <div>• Pipeline executions per hour</div>
-                    <div>• Deployment success rate</div>
-                    <div>• Build duration trends</div>
-                    <div>• User activity metrics</div>
-                  </div>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-3">Technical Metrics</h4>
-                  <div className="space-y-2 text-sm">
-                    <div>• HTTP request duration</div>
-                    <div>• Database query performance</div>
-                    <div>• Cache hit/miss ratios</div>
-                    <div>• API endpoint latency</div>
-                  </div>
-                </div>
-              </div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Health Check Endpoint</h2>
+            <p className="mb-4">Comprehensive health check implementation:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6 overflow-x-auto">
+              <pre className="text-sm">
+{`// app/api/health/route.ts
+import { NextResponse } from 'next/server'
 
-              <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-                <pre>{`// Custom metrics endpoint: /api/metrics
 export async function GET() {
-  const metrics = {
+  const health = {
+    status: 'healthy',
     timestamp: new Date().toISOString(),
-    application: {
-      requests_per_minute: Math.floor(Math.random() * 1000) + 800,
-      response_time_ms: Math.floor(Math.random() * 100) + 100,
-      error_rate: (Math.random() * 0.1).toFixed(3),
-      availability: (99.5 + Math.random() * 0.5).toFixed(2),
-    },
-    infrastructure: {
-      cpu_usage: Math.floor(Math.random() * 40) + 30,
-      memory_usage: Math.floor(Math.random() * 30) + 50,
-      storage_usage: Math.floor(Math.random() * 20) + 20,
-      network_io: Math.floor(Math.random() * 100) + 50,
+    uptime: process.uptime(),
+    version: process.env.APP_VERSION || '1.0.0',
+    checks: {
+      database: await checkDatabase(),
+      redis: await checkRedis(),
+      external_api: await checkExternalAPI(),
     }
   }
-  return NextResponse.json(metrics)
-}`}</pre>
-              </div>
+
+  const isHealthy = Object.values(health.checks).every(check => check.status === 'healthy')
+  
+  return NextResponse.json(health, {
+    status: isHealthy ? 200 : 503
+  })
+}
+
+async function checkDatabase() {
+  try {
+    // Database connection check
+    return { status: 'healthy', responseTime: '5ms' }
+  } catch (error) {
+    return { status: 'unhealthy', error: error.message }
+  }
+}`}
+              </pre>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Setup Commands */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Monitoring Stack Deployment</CardTitle>
-            <CardDescription>Step-by-step setup commands</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold mb-2">1. Deploy Prometheus</h4>
-                <div className="bg-gray-900 text-green-400 p-3 rounded font-mono text-sm">
-                  <div># Create monitoring namespace</div>
-                  <div>kubectl create namespace monitoring</div>
-                  <div></div>
-                  <div># Deploy Prometheus</div>
-                  <div>kubectl apply -f k8s/monitoring/prometheus.yml</div>
-                  <div></div>
-                  <div># Verify deployment</div>
-                  <div>kubectl get pods -n monitoring</div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-semibold mb-2">2. Deploy Grafana</h4>
-                <div className="bg-gray-900 text-green-400 p-3 rounded font-mono text-sm">
-                  <div># Deploy Grafana with dashboards</div>
-                  <div>kubectl apply -f k8s/monitoring/grafana.yml</div>
-                  <div></div>
-                  <div># Get Grafana service URL</div>
-                  <div>kubectl get svc grafana-service -n monitoring</div>
-                  <div></div>
-                  <div># Port forward for local access</div>
-                  <div>kubectl port-forward svc/grafana-service 3001:3000 -n monitoring</div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-semibold mb-2">3. Configure Alerts</h4>
-                <div className="bg-gray-900 text-green-400 p-3 rounded font-mono text-sm">
-                  <div># Test alert rules</div>
-                  <div>promtool check rules alert_rules.yml</div>
-                  <div></div>
-                  <div># Reload Prometheus config</div>
-                  <div>curl -X POST http://prometheus:9090/-/reload</div>
-                  <div></div>
-                  <div># Check alert status</div>
-                  <div>curl http://prometheus:9090/api/v1/alerts</div>
-                </div>
-              </div>
+            <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+              <h3 className="font-semibold text-green-800 mb-2">🎯 Monitoring Best Practices:</h3>
+              <ul className="list-disc pl-6 text-green-700">
+                <li>Monitor the four golden signals: latency, traffic, errors, saturation</li>
+                <li>Set up meaningful alerts with proper thresholds</li>
+                <li>Use structured logging with correlation IDs</li>
+                <li>Implement distributed tracing for microservices</li>
+                <li>Monitor business metrics, not just technical ones</li>
+                <li>Create runbooks for common alerts</li>
+              </ul>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Access Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Access URLs & Credentials</CardTitle>
-            <CardDescription>How to access your monitoring tools</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-semibold text-blue-700 mb-2">Prometheus</h4>
-                <div className="space-y-1 text-sm">
-                  <div>
-                    URL: <code>http://prometheus:9090</code>
-                  </div>
-                  <div>
-                    Port Forward: <code>kubectl port-forward svc/prometheus-service 9090:9090 -n monitoring</code>
-                  </div>
-                  <div>
-                    Local: <code>http://localhost:9090</code>
-                  </div>
-                </div>
-              </div>
-              <div className="p-4 bg-green-50 rounded-lg">
-                <h4 className="font-semibold text-green-700 mb-2">Grafana</h4>
-                <div className="space-y-1 text-sm">
-                  <div>
-                    URL: <code>http://grafana:3000</code>
-                  </div>
-                  <div>
-                    Username: <code>admin</code>
-                  </div>
-                  <div>
-                    Password: <code>admin123</code>
-                  </div>
-                  <div>
-                    Local: <code>http://localhost:3001</code>
-                  </div>
-                </div>
-              </div>
-              <div className="p-4 bg-purple-50 rounded-lg">
-                <h4 className="font-semibold text-purple-700 mb-2">Application</h4>
-                <div className="space-y-1 text-sm">
-                  <div>
-                    Health: <code>/api/health</code>
-                  </div>
-                  <div>
-                    Metrics: <code>/api/metrics</code>
-                  </div>
-                  <div>
-                    Dashboard: <code>/</code>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

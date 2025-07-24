@@ -1,39 +1,81 @@
 # Multi-stage build for optimized production image
-FROM node:18-alpine AS dependencies
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+FROM node:18-alpine AS base
 
-FROM node:18-alpine AS build
+# Install dependencies only when needed
+FROM base AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+
+# Install dependencies based on the preferred package manager
+COPY package.json package-lock.json* ./
+RUN \
+  if [ -f package-lock.json ]; then npm ci --only=production; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Uncomment the following line in case you want to disable telemetry during the build.
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Build the application
 RUN npm run build
 
-FROM node:18-alpine AS production
+# Production image, copy all the files and run next
+FROM base AS runner
 WORKDIR /app
 
-# Install curl for health checks
-RUN apk add --no-cache curl
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+# Create a non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Copy built application
-COPY --from=build --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=build --chown=nextjs:nodejs /app/public ./public
-COPY --from=dependencies --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --chown=nextjs:nodejs package*.json ./
+# Copy the public folder
+COPY --from=builder /app/public ./public
+
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Switch to non-root user
+USER nextjs
+
+# Expose the port the app runs on
+EXPOSE 3000
+
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node healthcheck.js
+
+# Create a simple health check script
+USER root
+RUN echo 'const http = require("http"); \
+const options = { hostname: "localhost", port: 3000, path: "/api/health", timeout: 2000 }; \
+const req = http.request(options, (res) => { \
+  if (res.statusCode === 200) { process.exit(0); } else { process.exit(1); } \
+}); \
+req.on("error", () => process.exit(1)); \
+req.on("timeout", () => process.exit(1)); \
+req.end();' > healthcheck.js
 
 USER nextjs
 
-EXPOSE 3000
-ENV PORT 3000
-ENV NODE_ENV production
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
-
-CMD ["npm", "start"]
+# Start the application
+CMD ["node", "server.js"]

@@ -1,292 +1,78 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Container, Shield, Zap, CheckCircle } from "lucide-react"
-import Link from "next/link"
-
 export default function DockerPracticesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">🐳 Docker Best Practices</h1>
-            <p className="text-gray-600">Optimized containerization strategies</p>
-          </div>
-        </div>
-
-        {/* Multi-stage Build */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Container className="w-5 h-5 text-blue-600" />
-              Multi-stage Dockerfile
-            </CardTitle>
-            <CardDescription>Optimized production-ready container</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-              <pre>{`# Multi-stage build for optimized production image
-FROM node:18-alpine AS dependencies
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">🐳 Docker Best Practices</h1>
+          
+          <div className="prose max-w-none">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Multi-Stage Dockerfile</h2>
+            <p className="mb-4">Our Dockerfile uses multi-stage builds for optimal image size and security:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6 overflow-x-auto">
+              <pre className="text-sm">
+{`# Stage 1: Dependencies
+FROM node:18-alpine AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --only=production
 
-FROM node:18-alpine AS build
+# Stage 2: Builder
+FROM node:18-alpine AS builder
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-FROM node:18-alpine AS production
+# Stage 3: Runner
+FROM node:18-alpine AS runner
 WORKDIR /app
+ENV NODE_ENV production
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Install curl for health checks
-RUN apk add --no-cache curl
-
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
-
-# Copy built application
-COPY --from=build --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=build --chown=nextjs:nodejs /app/public ./public
-COPY --from=dependencies --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --chown=nextjs:nodejs package*.json ./
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
-
 EXPOSE 3000
 ENV PORT 3000
-ENV NODE_ENV production
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \\
-  CMD curl -f http://localhost:3000/api/health || exit 1
-
-CMD ["npm", "start"]`}</pre>
+CMD ["node", "server.js"]`}
+              </pre>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Security Best Practices */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-red-600" />
-              Security Best Practices
-            </CardTitle>
-            <CardDescription>Hardening your containers</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Non-root User</h4>
-                    <p className="text-sm text-gray-600">Always run containers as non-root user</p>
-                    <div className="bg-gray-100 p-2 rounded mt-2 font-mono text-xs">
-                      RUN adduser -S nextjs -u 1001
-                      <br />
-                      USER nextjs
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Minimal Base Image</h4>
-                    <p className="text-sm text-gray-600">Use Alpine Linux for smaller attack surface</p>
-                    <div className="bg-gray-100 p-2 rounded mt-2 font-mono text-xs">FROM node:18-alpine</div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Vulnerability Scanning</h4>
-                    <p className="text-sm text-gray-600">Regular security scans with Trivy</p>
-                    <div className="bg-gray-100 p-2 rounded mt-2 font-mono text-xs">trivy image your-image:latest</div>
-                  </div>
-                </div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Image Optimization</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                <h3 className="font-semibold text-green-800 mb-2">✅ Best Practices</h3>
+                <ul className="text-sm text-green-700 space-y-1">
+                  <li>• Use Alpine Linux base images</li>
+                  <li>• Leverage multi-stage builds</li>
+                  <li>• Use .dockerignore file</li>
+                  <li>• Run as non-root user</li>
+                  <li>• Minimize layer count</li>
+                  <li>• Use specific version tags</li>
+                </ul>
               </div>
-
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Resource Limits</h4>
-                    <p className="text-sm text-gray-600">Set memory and CPU limits</p>
-                    <div className="bg-gray-100 p-2 rounded mt-2 font-mono text-xs">
-                      resources:
-                      <br />
-                      &nbsp;&nbsp;limits:
-                      <br />
-                      &nbsp;&nbsp;&nbsp;&nbsp;memory: "512Mi"
-                      <br />
-                      &nbsp;&nbsp;&nbsp;&nbsp;cpu: "500m"
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Health Checks</h4>
-                    <p className="text-sm text-gray-600">Built-in container health monitoring</p>
-                    <div className="bg-gray-100 p-2 rounded mt-2 font-mono text-xs">
-                      HEALTHCHECK --interval=30s
-                      <br />
-                      CMD curl -f /api/health
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Secrets Management</h4>
-                    <p className="text-sm text-gray-600">Never embed secrets in images</p>
-                    <div className="bg-gray-100 p-2 rounded mt-2 font-mono text-xs">
-                      # Use environment variables
-                      <br />
-                      ENV DATABASE_URL=""
-                    </div>
-                  </div>
-                </div>
+              <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                <h3 className="font-semibold text-red-800 mb-2">❌ Avoid These</h3>
+                <ul className="text-sm text-red-700 space-y-1">
+                  <li>• Using latest tags in production</li>
+                  <li>• Installing unnecessary packages</li>
+                  <li>• Running as root user</li>
+                  <li>• Copying entire project directory</li>
+                  <li>• Ignoring layer caching</li>
+                  <li>• Hardcoding secrets in images</li>
+                </ul>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Performance Optimization */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-yellow-600" />
-              Performance Optimization
-            </CardTitle>
-            <CardDescription>Making containers faster and smaller</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">45.2 MB</div>
-                  <div className="text-sm text-gray-600">Final Image Size</div>
-                  <Badge variant="secondary" className="mt-2">
-                    Optimized
-                  </Badge>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">2m 45s</div>
-                  <div className="text-sm text-gray-600">Build Time</div>
-                  <Badge variant="secondary" className="mt-2">
-                    Fast
-                  </Badge>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">84%</div>
-                  <div className="text-sm text-gray-600">Cache Hit Rate</div>
-                  <Badge variant="secondary" className="mt-2">
-                    Efficient
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="font-semibold">Optimization Techniques</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span className="text-sm">Layer caching optimization</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span className="text-sm">Multi-stage builds</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span className="text-sm">Production dependencies only</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span className="text-sm">Minimal base images</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span className="text-sm">Build cache utilization</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span className="text-sm">Proper .dockerignore</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Docker Commands */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Essential Docker Commands</CardTitle>
-            <CardDescription>Common commands for development and deployment</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-semibold mb-3">Development Commands</h4>
-                <div className="bg-gray-900 text-green-400 p-3 rounded font-mono text-sm space-y-1">
-                  <div># Build image</div>
-                  <div>docker build -t app .</div>
-                  <div></div>
-                  <div># Run container</div>
-                  <div>docker run -p 3000:3000 app</div>
-                  <div></div>
-                  <div># Run with env vars</div>
-                  <div>docker run -e NODE_ENV=dev app</div>
-                </div>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-3">Production Commands</h4>
-                <div className="bg-gray-900 text-green-400 p-3 rounded font-mono text-sm space-y-1">
-                  <div># Tag for registry</div>
-                  <div>docker tag app ghcr.io/user/app</div>
-                  <div></div>
-                  <div># Push to registry</div>
-                  <div>docker push ghcr.io/user/app</div>
-                  <div></div>
-                  <div># Security scan</div>
-                  <div>trivy image app:latest</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Docker Compose */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Docker Compose Configuration</CardTitle>
-            <CardDescription>Local development with multiple services</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-              <pre>{`version: '3.8'
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Docker Compose Configuration</h2>
+            <p className="mb-4">For local development, use Docker Compose:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6 overflow-x-auto">
+              <pre className="text-sm">
+{`version: '3.8'
 
 services:
   app:
@@ -294,38 +80,107 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  prometheus:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:password@db:5432/devops_pipeline
+    depends_on:
+      - db
+      - redis
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - .:/app
+      - /app/node_modules
 
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3001:3000"
+  db:
+    image: postgres:15-alpine
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin123`}</pre>
+      POSTGRES_DB: devops_pipeline
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:`}
+              </pre>
             </div>
-            <div className="mt-4">
-              <Badge variant="outline" className="mr-2">
-                docker-compose up
-              </Badge>
-              <Badge variant="outline" className="mr-2">
-                docker-compose down
-              </Badge>
-              <Badge variant="outline">docker-compose logs -f</Badge>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Security Scanning</h2>
+            <p className="mb-4">We use Trivy for container security scanning:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6">
+              <pre className="text-sm">
+{`# Scan for vulnerabilities
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
+  aquasec/trivy image devops-pipeline:latest
+
+# Scan with specific severity
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
+  aquasec/trivy image --severity HIGH,CRITICAL devops-pipeline:latest`}
+              </pre>
             </div>
-          </CardContent>
-        </Card>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Container Registry</h2>
+            <p className="mb-4">We use GitHub Container Registry (ghcr.io) for storing images:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6">
+              <pre className="text-sm">
+{`# Login to GitHub Container Registry
+echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
+
+# Tag and push image
+docker tag devops-pipeline:latest ghcr.io/username/devops-pipeline:latest
+docker push ghcr.io/username/devops-pipeline:latest
+
+# Pull image
+docker pull ghcr.io/username/devops-pipeline:latest`}
+              </pre>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Performance Optimization</h2>
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
+              <h3 className="font-semibold text-blue-800 mb-2">Image Size Optimization:</h3>
+              <ul className="list-disc pl-6 text-blue-700">
+                <li><strong>Base Image:</strong> Use Alpine Linux (5MB vs 100MB+)</li>
+                <li><strong>Dependencies:</strong> Only install production dependencies</li>
+                <li><strong>Layers:</strong> Combine RUN commands to reduce layers</li>
+                <li><strong>Cache:</strong> Order commands by frequency of change</li>
+              </ul>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Health Checks</h2>
+            <p className="mb-4">Add health checks to your Dockerfile:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6">
+              <pre className="text-sm">
+{`HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \\
+  CMD curl -f http://localhost:3000/api/health || exit 1`}
+              </pre>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Useful Commands</h2>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <pre className="text-sm">
+{`# Build image
+docker build -t devops-pipeline .
+
+# Run container
+docker run -p 3000:3000 devops-pipeline
+
+# View logs
+docker logs container_name
+
+# Execute shell in container
+docker exec -it container_name /bin/sh
+
+# Clean up
+docker system prune -a`}
+              </pre>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

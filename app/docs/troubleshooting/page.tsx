@@ -1,481 +1,323 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, AlertTriangle, Bug, Wrench, CheckCircle } from "lucide-react"
-import Link from "next/link"
-
 export default function TroubleshootingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">🚨 Troubleshooting Guide</h1>
-            <p className="text-gray-600">Common issues and their solutions</p>
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">🚨 Troubleshooting Guide</h1>
+          
+          <div className="prose max-w-none">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Common Issues</h2>
+            
+            <div className="space-y-6">
+              <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                <h3 className="font-semibold text-red-800 mb-2">🔴 Application Won't Start</h3>
+                <div className="text-sm text-red-700 mb-2">
+                  <strong>Symptoms:</strong> Application crashes on startup, port binding errors
+                </div>
+                <div className="text-sm text-red-700 mb-2">
+                  <strong>Common Causes:</strong>
+                  <ul className="list-disc pl-6 mt-1">
+                    <li>Port 3000 already in use</li>
+                    <li>Missing environment variables</li>
+                    <li>Database connection failure</li>
+                    <li>Missing dependencies</li>
+                  </ul>
+                </div>
+                <div className="text-sm text-red-700">
+                  <strong>Solutions:</strong>
+                  <div className="bg-gray-100 p-2 rounded mt-1">
+                    <pre className="text-xs">
+{`# Check what's using port 3000
+lsof -i :3000
+kill -9 <PID>
+
+# Check environment variables
+cat .env.local
+
+# Reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install
+
+# Check logs
+npm run dev 2>&1 | tee debug.log`}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
+                <h3 className="font-semibold text-orange-800 mb-2">🟠 Docker Build Failures</h3>
+                <div className="text-sm text-orange-700 mb-2">
+                  <strong>Symptoms:</strong> Docker build fails, image size too large, slow builds
+                </div>
+                <div className="text-sm text-orange-700 mb-2">
+                  <strong>Common Causes:</strong>
+                  <ul className="list-disc pl-6 mt-1">
+                    <li>Docker daemon not running</li>
+                    <li>Insufficient disk space</li>
+                    <li>Network connectivity issues</li>
+                    <li>Invalid Dockerfile syntax</li>
+                  </ul>
+                </div>
+                <div className="text-sm text-orange-700">
+                  <strong>Solutions:</strong>
+                  <div className="bg-gray-100 p-2 rounded mt-1">
+                    <pre className="text-xs">
+{`# Check Docker status
+docker --version
+docker info
+
+# Clean up Docker
+docker system prune -a
+
+# Build with verbose output
+docker build --no-cache --progress=plain -t devops-pipeline .
+
+# Check disk space
+df -h`}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                <h3 className="font-semibold text-yellow-800 mb-2">🟡 Deployment Issues</h3>
+                <div className="text-sm text-yellow-700 mb-2">
+                  <strong>Symptoms:</strong> Vercel deployment fails, environment variables not working
+                </div>
+                <div className="text-sm text-yellow-700 mb-2">
+                  <strong>Common Causes:</strong>
+                  <ul className="list-disc pl-6 mt-1">
+                    <li>Build command failures</li>
+                    <li>Missing environment variables</li>
+                    <li>Incorrect build settings</li>
+                    <li>Function timeout errors</li>
+                  </ul>
+                </div>
+                <div className="text-sm text-yellow-700">
+                  <strong>Solutions:</strong>
+                  <div className="bg-gray-100 p-2 rounded mt-1">
+                    <pre className="text-xs">
+{`# Check Vercel logs
+vercel logs
+
+# Redeploy with force
+vercel --prod --force
+
+# Check environment variables
+vercel env ls
+
+# Local build test
+npm run build`}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">🔵 Kubernetes Issues</h3>
+                <div className="text-sm text-blue-700 mb-2">
+                  <strong>Symptoms:</strong> Pods not starting, services unreachable, resource limits
+                </div>
+                <div className="text-sm text-blue-700 mb-2">
+                  <strong>Common Causes:</strong>
+                  <ul className="list-disc pl-6 mt-1">
+                    <li>Image pull errors</li>
+                    <li>Resource constraints</li>
+                    <li>Configuration errors</li>
+                    <li>Network policies</li>
+                  </ul>
+                </div>
+                <div className="text-sm text-blue-700">
+                  <strong>Solutions:</strong>
+                  <div className="bg-gray-100 p-2 rounded mt-1">
+                    <pre className="text-xs">
+{`# Check pod status
+kubectl get pods -n production
+
+# Describe pod for details
+kubectl describe pod <pod-name> -n production
+
+# Check logs
+kubectl logs -f <pod-name> -n production
+
+# Check events
+kubectl get events -n production --sort-by='.lastTimestamp'`}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4 mt-8">Debugging Commands</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-800 mb-2">🔍 Application Debugging</h3>
+                <div className="bg-gray-100 p-2 rounded">
+                  <pre className="text-xs">
+{`# Check application logs
+npm run dev 2>&1 | tee app.log
+
+# Check network connections
+netstat -tulpn | grep :3000
+
+# Monitor resource usage
+top -p $(pgrep node)
+
+# Check environment
+printenv | grep -E "(NODE|DATABASE|AWS)"`}
+                  </pre>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-800 mb-2">🐳 Docker Debugging</h3>
+                <div className="bg-gray-100 p-2 rounded">
+                  <pre className="text-xs">
+{`# Check running containers
+docker ps -a
+
+# Inspect container
+docker inspect <container-id>
+
+# Execute shell in container
+docker exec -it <container-id> /bin/sh
+
+# Check container logs
+docker logs -f <container-id>`}
+                  </pre>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Performance Issues</h2>
+            
+            <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg mb-6">
+              <h3 className="font-semibold text-purple-800 mb-2">🚀 Performance Optimization</h3>
+              <div className="text-sm text-purple-700">
+                <strong>Common Performance Issues:</strong>
+                <ul className="list-disc pl-6 mt-2 mb-4">
+                  <li>Slow page load times</li>
+                  <li>High memory usage</li>
+                  <li>Database query bottlenecks</li>
+                  <li>Large bundle sizes</li>
+                </ul>
+                <strong>Debugging Tools:</strong>
+                <div className="bg-gray-100 p-2 rounded mt-2">
+                  <pre className="text-xs">
+{`# Analyze bundle size
+npm run build
+npm run analyze
+
+# Memory profiling
+node --inspect app.js
+
+# Database query analysis
+EXPLAIN ANALYZE SELECT * FROM users;
+
+# Network analysis
+curl -w "@curl-format.txt" -o /dev/null -s "http://localhost:3000"`}
+                  </pre>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Monitoring and Alerts</h2>
+            
+            <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-6">
+              <h3 className="font-semibold text-green-800 mb-2">📊 Health Check Commands</h3>
+              <div className="bg-gray-100 p-2 rounded">
+                <pre className="text-xs">
+{`# Application health
+curl http://localhost:3000/api/health
+
+# Metrics endpoint
+curl http://localhost:3000/api/metrics
+
+# Database connectivity
+pg_isready -h localhost -p 5432
+
+# Kubernetes health
+kubectl get componentstatuses`}
+                </pre>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Emergency Procedures</h2>
+            
+            <div className="bg-red-50 border border-red-200 p-4 rounded-lg mb-6">
+              <h3 className="font-semibold text-red-800 mb-2">🚨 Emergency Response</h3>
+              <div className="text-sm text-red-700">
+                <strong>Production Outage:</strong>
+                <ol className="list-decimal pl-6 mt-2 mb-4">
+                  <li>Check application health endpoints</li>
+                  <li>Review recent deployments</li>
+                  <li>Check monitoring dashboards</li>
+                  <li>Scale up resources if needed</li>
+                  <li>Rollback if necessary</li>
+                  <li>Communicate with stakeholders</li>
+                </ol>
+                <strong>Rollback Commands:</strong>
+                <div className="bg-gray-100 p-2 rounded mt-2">
+                  <pre className="text-xs">
+{`# Vercel rollback
+vercel rollback <deployment-url>
+
+# Kubernetes rollback
+kubectl rollout undo deployment/devops-pipeline-app -n production
+
+# Docker rollback
+docker run -d -p 3000:3000 devops-pipeline:previous-tag`}
+                  </pre>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Getting Help</h2>
+            
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+              <h3 className="font-semibold text-blue-800 mb-2">📞 Support Resources</h3>
+              <ul className="list-disc pl-6 text-blue-700">
+                <li><strong>Documentation:</strong> Check the setup guide and configuration docs</li>
+                <li><strong>Logs:</strong> Always include relevant logs when asking for help</li>
+                <li><strong>GitHub Issues:</strong> Search existing issues or create a new one</li>
+                <li><strong>Community:</strong> Join our Discord/Slack for real-time help</li>
+                <li><strong>Monitoring:</strong> Check Grafana dashboards for system health</li>
+              </ul>
+            </div>
+
+            <div className="bg-gray-100 p-4 rounded-lg mt-6">
+              <h3 className="font-semibold text-gray-800 mb-2">📋 Issue Report Template</h3>
+              <pre className="text-sm text-gray-700">
+{`**Environment:**
+- OS: [e.g., macOS 12.0]
+- Node.js: [e.g., 18.17.0]
+- Docker: [e.g., 20.10.21]
+
+**Issue Description:**
+[Describe the problem]
+
+**Steps to Reproduce:**
+1. [First step]
+2. [Second step]
+3. [Third step]
+
+**Expected Behavior:**
+[What should happen]
+
+**Actual Behavior:**
+[What actually happens]
+
+**Logs:**
+[Include relevant logs]
+
+**Additional Context:**
+[Any other relevant information]`}
+              </pre>
+            </div>
           </div>
         </div>
-
-        {/* Quick Diagnostics */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              Quick Health Check
-            </CardTitle>
-            <CardDescription>Run these commands to check system health</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm space-y-2">
-              <div># Check application health</div>
-              <div>curl -f http://localhost:3000/api/health</div>
-              <div></div>
-              <div># Check Kubernetes pods</div>
-              <div>kubectl get pods -n production</div>
-              <div></div>
-              <div># Check services</div>
-              <div>kubectl get svc -n production</div>
-              <div></div>
-              <div># Check recent events</div>
-              <div>kubectl get events -n production --sort-by='.lastTimestamp'</div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Pipeline Issues */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bug className="w-5 h-5 text-red-600" />
-              Pipeline Issues
-            </CardTitle>
-            <CardDescription>Common CI/CD pipeline problems</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="border-l-4 border-red-500 pl-4">
-              <h4 className="font-semibold text-red-700 mb-2">Build Failures</h4>
-              <div className="space-y-3">
-                <div>
-                  <div className="font-medium text-sm">Symptom: npm install fails</div>
-                  <div className="text-sm text-gray-600 mb-2">Package installation errors or dependency conflicts</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Clear npm cache
-                    <br />
-                    npm cache clean --force
-                    <br /># Delete node_modules and package-lock.json
-                    <br />
-                    rm -rf node_modules package-lock.json
-                    <br /># Reinstall dependencies
-                    <br />
-                    npm install
-                  </div>
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Symptom: TypeScript compilation errors</div>
-                  <div className="text-sm text-gray-600 mb-2">Type checking failures during build</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Check TypeScript errors
-                    <br />
-                    npx tsc --noEmit
-                    <br /># Fix linting issues
-                    <br />
-                    npm run lint:fix
-                  </div>
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Symptom: Test failures</div>
-                  <div className="text-sm text-gray-600 mb-2">Unit tests failing in CI environment</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Run tests locally
-                    <br />
-                    npm test
-                    <br /># Update snapshots if needed
-                    <br />
-                    npm test -- --updateSnapshot
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-l-4 border-yellow-500 pl-4">
-              <h4 className="font-semibold text-yellow-700 mb-2">Docker Build Issues</h4>
-              <div className="space-y-3">
-                <div>
-                  <div className="font-medium text-sm">Symptom: Docker build timeout</div>
-                  <div className="text-sm text-gray-600 mb-2">Build process takes too long or hangs</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Build with verbose output
-                    <br />
-                    docker build --progress=plain -t app .<br /># Check .dockerignore file
-                    <br />
-                    cat .dockerignore
-                  </div>
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Symptom: Image size too large</div>
-                  <div className="text-sm text-gray-600 mb-2">Final image exceeds expected size</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Analyze image layers
-                    <br />
-                    docker history app:latest
-                    <br /># Use multi-stage builds
-                    <br /># Remove unnecessary files
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-l-4 border-blue-500 pl-4">
-              <h4 className="font-semibold text-blue-700 mb-2">GitHub Actions Issues</h4>
-              <div className="space-y-3">
-                <div>
-                  <div className="font-medium text-sm">Symptom: Workflow not triggering</div>
-                  <div className="text-sm text-gray-600 mb-2">Pipeline doesn't start on push/PR</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Check workflow file syntax
-                    <br /># Verify branch names in triggers
-                    <br /># Check repository permissions
-                  </div>
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Symptom: Secrets not available</div>
-                  <div className="text-sm text-gray-600 mb-2">Environment variables or secrets missing</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Verify secrets in repository settings
-                    <br /># Check secret names match workflow
-                    <br /># Ensure proper environment context
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Deployment Issues */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wrench className="w-5 h-5 text-blue-600" />
-              Deployment Issues
-            </CardTitle>
-            <CardDescription>Kubernetes and application deployment problems</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="border-l-4 border-red-500 pl-4">
-              <h4 className="font-semibold text-red-700 mb-2">Pod Issues</h4>
-              <div className="space-y-3">
-                <div>
-                  <div className="font-medium text-sm">Symptom: Pods stuck in Pending state</div>
-                  <div className="text-sm text-gray-600 mb-2">Pods cannot be scheduled</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Check pod events
-                    <br />
-                    kubectl describe pod &lt;pod-name&gt; -n production
-                    <br /># Check node resources
-                    <br />
-                    kubectl top nodes
-                    <br /># Check resource quotas
-                    <br />
-                    kubectl describe quota -n production
-                  </div>
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Symptom: Pods crash looping</div>
-                  <div className="text-sm text-gray-600 mb-2">Pods restart continuously</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Check pod logs
-                    <br />
-                    kubectl logs -f &lt;pod-name&gt; -n production
-                    <br /># Check previous container logs
-                    <br />
-                    kubectl logs &lt;pod-name&gt; --previous -n production
-                    <br /># Verify health check endpoints
-                    <br />
-                    curl http://pod-ip:3000/api/health
-                  </div>
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Symptom: ImagePullBackOff</div>
-                  <div className="text-sm text-gray-600 mb-2">Cannot pull container image</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Check image name and tag
-                    <br />
-                    kubectl describe pod &lt;pod-name&gt; -n production
-                    <br /># Verify registry credentials
-                    <br />
-                    kubectl get secrets -n production
-                    <br /># Test image pull manually
-                    <br />
-                    docker pull &lt;image-name&gt;
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-l-4 border-yellow-500 pl-4">
-              <h4 className="font-semibold text-yellow-700 mb-2">Service Issues</h4>
-              <div className="space-y-3">
-                <div>
-                  <div className="font-medium text-sm">Symptom: Service not accessible</div>
-                  <div className="text-sm text-gray-600 mb-2">Cannot reach application through service</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Check service endpoints
-                    <br />
-                    kubectl get endpoints -n production
-                    <br /># Verify service selector
-                    <br />
-                    kubectl describe svc app-service-production -n production
-                    <br /># Test service connectivity
-                    <br />
-                    kubectl run test-pod --image=busybox -it --rm -- wget -qO- http://app-service-production/api/health
-                  </div>
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Symptom: Load balancer not working</div>
-                  <div className="text-sm text-gray-600 mb-2">External traffic not reaching pods</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Check ingress status
-                    <br />
-                    kubectl get ingress -n production
-                    <br /># Verify ingress controller
-                    <br />
-                    kubectl get pods -n ingress-nginx
-                    <br /># Check DNS resolution
-                    <br />
-                    nslookup your-domain.com
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Application Issues */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-orange-600" />
-              Application Issues
-            </CardTitle>
-            <CardDescription>Runtime and performance problems</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="border-l-4 border-red-500 pl-4">
-              <h4 className="font-semibold text-red-700 mb-2">Performance Issues</h4>
-              <div className="space-y-3">
-                <div>
-                  <div className="font-medium text-sm">Symptom: High response times</div>
-                  <div className="text-sm text-gray-600 mb-2">API endpoints responding slowly</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Check application metrics
-                    <br />
-                    curl http://localhost:3000/api/metrics
-                    <br /># Monitor resource usage
-                    <br />
-                    kubectl top pods -n production
-                    <br /># Check database connections
-                    <br /># Review slow query logs
-                  </div>
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Symptom: Memory leaks</div>
-                  <div className="text-sm text-gray-600 mb-2">Memory usage continuously increasing</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Monitor memory usage over time
-                    <br />
-                    kubectl top pods -n production --containers
-                    <br /># Check for memory leaks in code
-                    <br /># Review garbage collection logs
-                    <br /># Implement memory profiling
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-l-4 border-yellow-500 pl-4">
-              <h4 className="font-semibold text-yellow-700 mb-2">Configuration Issues</h4>
-              <div className="space-y-3">
-                <div>
-                  <div className="font-medium text-sm">Symptom: Environment variables not loaded</div>
-                  <div className="text-sm text-gray-600 mb-2">Application cannot access configuration</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Check environment variables in pod
-                    <br />
-                    kubectl exec -it &lt;pod-name&gt; -n production -- env
-                    <br /># Verify ConfigMap and Secrets
-                    <br />
-                    kubectl get configmap,secret -n production
-                    <br /># Check deployment manifest
-                    <br />
-                    kubectl get deployment app-production -o yaml -n production
-                  </div>
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Symptom: Database connection failures</div>
-                  <div className="text-sm text-gray-600 mb-2">Cannot connect to database</div>
-                  <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                    # Test database connectivity
-                    <br />
-                    kubectl run db-test --image=postgres:13 -it --rm -- psql $DATABASE_URL
-                    <br /># Check network policies
-                    <br />
-                    kubectl get networkpolicy -n production
-                    <br /># Verify database credentials
-                    <br />
-                    kubectl get secret app-secrets -o yaml -n production
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Monitoring Issues */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Monitoring & Observability Issues</CardTitle>
-            <CardDescription>Problems with metrics, logs, and alerts</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <h4 className="font-semibold">Prometheus Issues</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="border-l-2 border-blue-500 pl-2">
-                    <div className="font-medium">Metrics not being scraped</div>
-                    <div className="text-gray-600">Check service discovery and annotations</div>
-                  </div>
-                  <div className="border-l-2 border-blue-500 pl-2">
-                    <div className="font-medium">High memory usage</div>
-                    <div className="text-gray-600">Adjust retention period and storage</div>
-                  </div>
-                  <div className="border-l-2 border-blue-500 pl-2">
-                    <div className="font-medium">Targets down</div>
-                    <div className="text-gray-600">Verify network connectivity and health endpoints</div>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <h4 className="font-semibold">Grafana Issues</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="border-l-2 border-green-500 pl-2">
-                    <div className="font-medium">Dashboards not loading</div>
-                    <div className="text-gray-600">Check data source configuration</div>
-                  </div>
-                  <div className="border-l-2 border-green-500 pl-2">
-                    <div className="font-medium">No data in graphs</div>
-                    <div className="text-gray-600">Verify Prometheus queries and time ranges</div>
-                  </div>
-                  <div className="border-l-2 border-green-500 pl-2">
-                    <div className="font-medium">Alerts not firing</div>
-                    <div className="text-gray-600">Check alert rules and notification channels</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Emergency Procedures */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-red-700">🚨 Emergency Procedures</CardTitle>
-            <CardDescription>Critical actions for production incidents</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-red-800 mb-2">Immediate Actions</h4>
-                  <div className="bg-gray-900 text-green-400 p-3 rounded font-mono text-sm">
-                    <div># Scale down to stop traffic</div>
-                    <div>kubectl scale deployment app-production --replicas=0 -n production</div>
-                    <div></div>
-                    <div># Rollback to previous version</div>
-                    <div>kubectl rollout undo deployment/app-production -n production</div>
-                    <div></div>
-                    <div># Check rollback status</div>
-                    <div>kubectl rollout status deployment/app-production -n production</div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-red-800 mb-2">Communication</h4>
-                  <div className="space-y-1 text-sm">
-                    <div>• Notify team in Slack #incidents channel</div>
-                    <div>• Update status page if customer-facing</div>
-                    <div>• Document incident timeline</div>
-                    <div>• Prepare post-incident review</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Support Resources */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Support Resources</CardTitle>
-            <CardDescription>Where to get help</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Documentation</h4>
-                <div className="space-y-1 text-sm">
-                  <div>
-                    •{" "}
-                    <a href="/docs/setup-guide" className="text-blue-600 hover:underline">
-                      Setup Guide
-                    </a>
-                  </div>
-                  <div>
-                    •{" "}
-                    <a href="/docs/pipeline-config" className="text-blue-600 hover:underline">
-                      Pipeline Config
-                    </a>
-                  </div>
-                  <div>
-                    •{" "}
-                    <a href="/docs/kubernetes-deployment" className="text-blue-600 hover:underline">
-                      K8s Deployment
-                    </a>
-                  </div>
-                  <div>
-                    •{" "}
-                    <a href="/docs/monitoring-setup" className="text-blue-600 hover:underline">
-                      Monitoring Setup
-                    </a>
-                  </div>
-                </div>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Community</h4>
-                <div className="space-y-1 text-sm">
-                  <div>• GitHub Issues</div>
-                  <div>• Stack Overflow</div>
-                  <div>• Discord Community</div>
-                  <div>• Reddit r/devops</div>
-                </div>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Emergency</h4>
-                <div className="space-y-1 text-sm">
-                  <div>• On-call engineer</div>
-                  <div>• Incident response team</div>
-                  <div>• Escalation procedures</div>
-                  <div>• Vendor support</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   )

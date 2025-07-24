@@ -1,208 +1,91 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, CheckCircle, GitBranch, Terminal, Download } from "lucide-react"
-import Link from "next/link"
-
 export default function SetupGuidePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">📋 Project Setup Guide</h1>
-            <p className="text-gray-600">Complete guide to set up the DevOps CI/CD Pipeline</p>
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">📋 Project Setup Guide</h1>
+          
+          <div className="prose max-w-none">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Prerequisites</h2>
+            <ul className="list-disc pl-6 mb-6">
+              <li>Node.js 18+ installed</li>
+              <li>Git installed and configured</li>
+              <li>Docker Desktop installed</li>
+              <li>GitHub account</li>
+              <li>Vercel account</li>
+            </ul>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Quick Start</h2>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6">
+              <pre className="text-sm">
+{`# Clone the repository
+git clone https://github.com/GOlivierNation/DevOpsHackthon.git
+cd DevOpsHackthon
+
+# Install dependencies
+npm install
+
+# Create environment file
+cp .env.example .env.local
+
+# Start development server
+npm run dev`}
+              </pre>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Environment Configuration</h2>
+            <p className="mb-4">Update your <code className="bg-gray-100 px-2 py-1 rounded">.env.local</code> file with the following variables:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6">
+              <pre className="text-sm">
+{`# Database Configuration
+DATABASE_URL="postgresql://user:password@localhost:5432/devops_pipeline"
+
+# AWS Configuration (Optional)
+AWS_REGION="us-west-2"
+AWS_ACCOUNT_ID="123456789012"
+EKS_CLUSTER_NAME="production-cluster"
+
+# Monitoring Configuration (Optional)
+GRAFANA_API_KEY="your-grafana-api-key"
+PROMETHEUS_URL="http://localhost:9090"`}
+              </pre>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Development Workflow</h2>
+            <ol className="list-decimal pl-6 mb-6">
+              <li>Create a new branch for your feature</li>
+              <li>Make your changes</li>
+              <li>Test locally with <code className="bg-gray-100 px-2 py-1 rounded">npm run dev</code></li>
+              <li>Run tests with <code className="bg-gray-100 px-2 py-1 rounded">npm test</code></li>
+              <li>Build the application with <code className="bg-gray-100 px-2 py-1 rounded">npm run build</code></li>
+              <li>Commit and push your changes</li>
+              <li>Create a pull request</li>
+            </ol>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Deployment</h2>
+            <p className="mb-4">Use the automated deployment script:</p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-6">
+              <pre className="text-sm">
+{`# Make script executable
+chmod +x scripts/deploy.sh
+
+# Run deployment
+./scripts/deploy.sh`}
+              </pre>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Troubleshooting</h2>
+            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+              <h3 className="font-semibold text-yellow-800 mb-2">Common Issues:</h3>
+              <ul className="list-disc pl-6 text-yellow-700">
+                <li><strong>Port 3000 already in use:</strong> Kill the process or use a different port</li>
+                <li><strong>Environment variables not loading:</strong> Restart the development server</li>
+                <li><strong>Docker build fails:</strong> Check Docker Desktop is running</li>
+                <li><strong>Database connection error:</strong> Verify DATABASE_URL is correct</li>
+              </ul>
+            </div>
           </div>
         </div>
-
-        {/* Prerequisites */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              Prerequisites
-            </CardTitle>
-            <CardDescription>Required tools and accounts before starting</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <h4 className="font-semibold">Required Software</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">Node.js 18+ installed</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">Git installed</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">Docker installed (optional)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">kubectl installed (for K8s)</span>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <h4 className="font-semibold">Required Accounts</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">GitHub account</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">Vercel account (free)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">AWS account (optional)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">Docker Hub account (optional)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Start */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Terminal className="w-5 h-5 text-blue-600" />
-              Quick Start Commands
-            </CardTitle>
-            <CardDescription>Get up and running in 5 minutes</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm space-y-2">
-              <div># 1. Clone the repository</div>
-              <div>git clone https://github.com/GOlivierNation/DevOpsHackthon.git</div>
-              <div>cd DevOpsHackthon</div>
-              <div></div>
-              <div># 2. Install dependencies</div>
-              <div>npm install</div>
-              <div></div>
-              <div># 3. Start development server</div>
-              <div>npm run dev</div>
-              <div></div>
-              <div># 4. Open browser</div>
-              <div># Visit: http://localhost:3000</div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Project Structure */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GitBranch className="w-5 h-5 text-purple-600" />
-              Project Structure
-            </CardTitle>
-            <CardDescription>Understanding the codebase organization</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-gray-50 p-4 rounded-lg font-mono text-sm">
-              <div className="space-y-1">
-                <div>📁 DevOpsHackthon/</div>
-                <div>├── 📁 app/ # Next.js App Router</div>
-                <div>│ ├── 📁 api/ # API routes</div>
-                <div>│ ├── 📁 docs/ # Documentation pages</div>
-                <div>│ ├── layout.tsx # Root layout</div>
-                <div>│ └── page.tsx # Main dashboard</div>
-                <div>├── 📁 components/ # React components</div>
-                <div>├── 📁 .github/workflows/ # GitHub Actions</div>
-                <div>├── 📁 k8s/ # Kubernetes manifests</div>
-                <div>├── 📁 scripts/ # Setup scripts</div>
-                <div>├── Dockerfile # Docker configuration</div>
-                <div>├── docker-compose.yml # Local development</div>
-                <div>├── vercel.json # Vercel config</div>
-                <div>└── README.md # Project documentation</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Environment Setup */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Environment Configuration</CardTitle>
-            <CardDescription>Setting up environment variables</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h4 className="font-semibold mb-2">Required Environment Variables</h4>
-              <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm">
-                <div># AWS Configuration (Optional)</div>
-                <div>AWS_REGION=us-west-2</div>
-                <div>AWS_ACCOUNT_ID=123456789012</div>
-                <div>EKS_CLUSTER_NAME=production-cluster</div>
-                <div></div>
-                <div># Application Configuration</div>
-                <div>NODE_ENV=production</div>
-                <div>NEXT_PUBLIC_APP_URL=https://your-app.vercel.app</div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Badge variant="outline" className="p-2 justify-center">
-                Development: .env.local
-              </Badge>
-              <Badge variant="outline" className="p-2 justify-center">
-                Vercel: Dashboard Settings
-              </Badge>
-              <Badge variant="outline" className="p-2 justify-center">
-                Railway: CLI or Dashboard
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Next Steps */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Download className="w-5 h-5 text-orange-600" />
-              Next Steps
-            </CardTitle>
-            <CardDescription>What to do after setup</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="font-semibold">Development</h4>
-                <div className="space-y-1 text-sm">
-                  <div>• Configure pipeline settings</div>
-                  <div>• Set up Docker containers</div>
-                  <div>• Deploy to Kubernetes</div>
-                  <div>• Configure monitoring</div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-semibold">Production</h4>
-                <div className="space-y-1 text-sm">
-                  <div>• Deploy to Vercel/Railway</div>
-                  <div>• Set up custom domain</div>
-                  <div>• Configure alerts</div>
-                  <div>• Monitor performance</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   )
