@@ -21,7 +21,10 @@ export function ClusterModal({ open, onOpenChange }: ClusterModalProps) {
   const fetchClusterData = async () => {
     setLoading(true)
     try {
-      const [clusterResponse, awsResponse] = await Promise.all([fetch("/api/cluster"), fetch("/api/aws/console")])
+      const [clusterResponse, awsResponse] = await Promise.all([
+        fetch("/api/cluster"),
+        fetch("/api/aws/console")
+      ])
 
       if (clusterResponse.ok) {
         const data = await clusterResponse.json()
@@ -94,8 +97,7 @@ export function ClusterModal({ open, onOpenChange }: ClusterModalProps) {
                 <span className="text-sm font-medium">AWS Configuration Required</span>
               </div>
               <p className="text-xs text-yellow-700 mt-1">
-                Set AWS_REGION, AWS_ACCOUNT_ID, and EKS_CLUSTER_NAME environment variables to enable AWS Console
-                integration.
+                Set AWS_REGION, AWS_ACCOUNT_ID, and EKS_CLUSTER_NAME environment variables to enable AWS Console integration.
               </p>
             </div>
           )}
@@ -108,12 +110,10 @@ export function ClusterModal({ open, onOpenChange }: ClusterModalProps) {
           </div>
         ) : (
           <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="nodes">Nodes</TabsTrigger>
               <TabsTrigger value="workloads">Workloads</TabsTrigger>
-              <TabsTrigger value="networking">Network</TabsTrigger>
-              <TabsTrigger value="aws">AWS Services</TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
             </TabsList>
 
@@ -261,139 +261,6 @@ export function ClusterModal({ open, onOpenChange }: ClusterModalProps) {
                   <div className="text-2xl font-bold text-red-600">{clusterData?.workloads.secrets}</div>
                   <div className="text-sm text-gray-600">Secrets</div>
                 </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="networking" className="space-y-4">
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-3 flex items-center gap-2">
-                  <Network className="w-4 h-4" />
-                  Network Configuration
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Cluster IP:</span>
-                      <code className="text-xs">{clusterData?.networking.clusterIP}</code>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Service IP:</span>
-                      <code className="text-xs">{clusterData?.networking.serviceIP}</code>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>DNS Name:</span>
-                      <code className="text-xs">{clusterData?.networking.dnsName}</code>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Load Balancers:</span>
-                      <span className="font-medium">{clusterData?.networking.loadBalancers}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Network Policies:</span>
-                      <span className="font-medium">{clusterData?.security.networkPolicies}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="aws" className="space-y-4">
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-3 flex items-center gap-2">
-                  <Cloud className="w-4 h-4" />
-                  AWS Services Quick Access
-                </h4>
-                {awsConsoleData?.isConfigured ? (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="justify-start bg-transparent"
-                      onClick={() => window.open(awsConsoleData.consoleUrls.eks, "_blank")}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-2" />
-                      EKS Clusters
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="justify-start bg-transparent"
-                      onClick={() => window.open(awsConsoleData.consoleUrls.ec2, "_blank")}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-2" />
-                      EC2 Instances
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="justify-start bg-transparent"
-                      onClick={() => window.open(awsConsoleData.consoleUrls.cloudwatch, "_blank")}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-2" />
-                      CloudWatch
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="justify-start bg-transparent"
-                      onClick={() => window.open(awsConsoleData.consoleUrls.vpc, "_blank")}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-2" />
-                      VPC
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="justify-start bg-transparent"
-                      onClick={() => window.open(awsConsoleData.consoleUrls.iam, "_blank")}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-2" />
-                      IAM Roles
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="justify-start bg-transparent"
-                      onClick={() => window.open(awsConsoleData.consoleUrls.s3, "_blank")}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-2" />
-                      S3 Buckets
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="justify-start bg-transparent"
-                      onClick={() => window.open(awsConsoleData.consoleUrls.rds, "_blank")}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-2" />
-                      RDS Databases
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="justify-start bg-transparent"
-                      onClick={() => window.open(awsConsoleData.consoleUrls.lambda, "_blank")}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-2" />
-                      Lambda Functions
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-                    <h5 className="font-medium text-gray-900 mb-2">AWS Configuration Required</h5>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Configure the following environment variables to enable AWS Console integration:
-                    </p>
-                    <div className="bg-gray-50 p-4 rounded-lg text-left">
-                      <code className="text-xs block mb-1">AWS_REGION=us-west-2</code>
-                      <code className="text-xs block mb-1">AWS_ACCOUNT_ID=123456789012</code>
-                      <code className="text-xs block">EKS_CLUSTER_NAME=production-cluster</code>
-                    </div>
-                  </div>
-                )}
               </div>
             </TabsContent>
 
