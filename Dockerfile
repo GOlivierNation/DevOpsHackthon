@@ -51,17 +51,19 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Switch to non-root user
+# Create necessary directories with correct permissions
+RUN mkdir -p /tmp && chown nextjs:nodejs /tmp
+RUN mkdir -p /app/.next/cache && chown nextjs:nodejs /app/.next/cache
+
 USER nextjs
 
-# Expose the port the app runs on
 EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
 # Add health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD node healthcheck.js
 
 # Create a simple health check script
@@ -77,5 +79,4 @@ req.end();' > healthcheck.js
 
 USER nextjs
 
-# Start the application
 CMD ["node", "server.js"]

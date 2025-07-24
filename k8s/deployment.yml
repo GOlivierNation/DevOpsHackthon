@@ -1,19 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: devops-pipeline-app
+  name: devops-pipeline
   namespace: production
   labels:
     app: devops-pipeline
-    version: v1.0.0
-    component: application
+    version: "1.0.0"
 spec:
   replicas: 3
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
   selector:
     matchLabels:
       app: devops-pipeline
@@ -21,25 +15,14 @@ spec:
     metadata:
       labels:
         app: devops-pipeline
-        version: v1.0.0
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "3000"
-        prometheus.io/path: "/api/metrics"
+        version: "1.0.0"
     spec:
-      serviceAccountName: devops-pipeline-sa
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        fsGroup: 1001
       containers:
-      - name: app
+      - name: devops-pipeline
         image: ghcr.io/goliviernation/devops-pipeline:latest
-        imagePullPolicy: Always
         ports:
         - containerPort: 3000
           name: http
-          protocol: TCP
         env:
         - name: NODE_ENV
           value: "production"
@@ -50,16 +33,21 @@ spec:
             secretKeyRef:
               name: app-secrets
               key: database-url
-        - name: GRAFANA_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets
-              key: grafana-api-key
         - name: AWS_REGION
           valueFrom:
             configMapKeyRef:
               name: app-config
               key: aws-region
+        - name: AWS_ACCOUNT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: aws-account-id
+        - name: EKS_CLUSTER_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: eks-cluster-name
         resources:
           requests:
             memory: "256Mi"
@@ -83,25 +71,27 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 3
-        startupProbe:
-          httpGet:
-            path: /api/health
-            port: 3000
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 30
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
         volumeMounts:
-        - name: app-config
-          mountPath: /app/config
-          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        - name: nextjs-cache
+          mountPath: /app/.next/cache
       volumes:
-      - name: app-config
-        configMap:
-          name: app-config
-      imagePullSecrets:
-      - name: ghcr-secret
-
+      - name: tmp
+        emptyDir: {}
+      - name: nextjs-cache
+        emptyDir: {}
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: devops-pipeline-sa
 ---
 apiVersion: v1
 kind: Service
@@ -115,11 +105,10 @@ spec:
     app: devops-pipeline
   ports:
   - name: http
-    protocol: TCP
     port: 80
     targetPort: 3000
+    protocol: TCP
   type: ClusterIP
-
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -147,7 +136,6 @@ spec:
             name: devops-pipeline-service
             port:
               number: 80
-
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -155,12 +143,11 @@ metadata:
   name: app-config
   namespace: production
 data:
-  NODE_ENV: "production"
-  PORT: "3000"
-  LOG_LEVEL: "info"
   aws-region: "us-west-2"
-  prometheus-url: "http://prometheus:9090"
-
+  aws-account-id: "123456789012"
+  eks-cluster-name: "production-cluster"
+  grafana-url: "https://grafana.example.com"
+  prometheus-url: "http://prometheus.monitoring.svc.cluster.local:9090"
 ---
 apiVersion: v1
 kind: Secret
@@ -168,11 +155,42 @@ metadata:
   name: app-secrets
   namespace: production
 type: Opaque
-data:
-  database-url: cG9zdGdyZXNxbDovL3VzZXI6cGFzc3dvcmRAbG9jYWxob3N0OjU0MzIvZGV2b3BzX3BpcGVsaW5l
-  grafana-api-key: eW91ci1ncmFmYW5hLWFwaS1rZXk=
-  jwt-secret: eW91ci1qd3Qtc2VjcmV0LWtleQ==
-
+stringData:
+  database-url: "postgresql://user:password@postgres.database.svc.cluster.local:5432/devops_pipeline"
+  grafana-api-key: "your-grafana-api-key"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devops-pipeline-sa
+  namespace: production
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: production
+  name: devops-pipeline-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: devops-pipeline-rolebinding
+  namespace: production
+subjects:
+- kind: ServiceAccount
+  name: devops-pipeline-sa
+  namespace: production
+roleRef:
+  kind: Role
+  name: devops-pipeline-role
+  apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -183,7 +201,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: devops-pipeline-app
+    name: devops-pipeline
   minReplicas: 3
   maxReplicas: 10
   metrics:
@@ -199,10 +217,3 @@ spec:
       target:
         type: Utilization
         averageUtilization: 80
-
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: devops-pipeline-sa
-  namespace: production

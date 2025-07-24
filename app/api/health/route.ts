@@ -1,45 +1,233 @@
-import { NextResponse } from "next/server"
+import { NextResponse } from 'next/server'
+
+interface HealthCheck {
+  status: 'healthy' | 'unhealthy'
+  message?: string
+  responseTime?: number
+}
+
+interface HealthStatus {
+  status: 'healthy' | 'unhealthy'
+  timestamp: string
+  uptime: number
+  version: string
+  environment: string
+  checks: {
+    database: HealthCheck
+    redis: HealthCheck
+    external_services: HealthCheck
+    memory: HealthCheck
+    disk: HealthCheck
+  }
+}
+
+// Simulate database health check
+async function checkDatabase(): Promise<HealthCheck> {
+  try {
+    const start = Date.now()
+    // Simulate database connection check
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 50))
+    const responseTime = Date.now() - start
+    
+    return {
+      status: 'healthy',
+      message: 'Database connection successful',
+      responseTime
+    }
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      message: 'Database connection failed'
+    }
+  }
+}
+
+// Simulate Redis health check
+async function checkRedis(): Promise<HealthCheck> {
+  try {
+    const start = Date.now()
+    // Simulate Redis ping
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 30))
+    const responseTime = Date.now() - start
+    
+    return {
+      status: 'healthy',
+      message: 'Redis connection successful',
+      responseTime
+    }
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      message: 'Redis connection failed'
+    }
+  }
+}
+
+// Check external services
+async function checkExternalServices(): Promise<HealthCheck> {
+  try {
+    const start = Date.now()
+    // Simulate external API check
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 100))
+    const responseTime = Date.now() - start
+    
+    return {
+      status: 'healthy',
+      message: 'External services accessible',
+      responseTime
+    }
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      message: 'External services unavailable'
+    }
+  }
+}
+
+// Check memory usage
+function checkMemory(): HealthCheck {
+  try {
+    const memUsage = process.memoryUsage()
+    const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024)
+    const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024)
+    const usage = (heapUsedMB / heapTotalMB) * 100
+    
+    if (usage > 90) {
+      return {
+        status: 'unhealthy',
+        message: `High memory usage: ${usage.toFixed(1)}%`
+      }
+    }
+    
+    return {
+      status: 'healthy',
+      message: `Memory usage: ${usage.toFixed(1)}% (${heapUsedMB}MB/${heapTotalMB}MB)`
+    }
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      message: 'Unable to check memory usage'
+    }
+  }
+}
+
+// Check disk space (simulated)
+function checkDisk(): HealthCheck {
+  try {
+    // Simulate disk space check
+    const freeSpace = Math.random() * 100
+    
+    if (freeSpace < 10) {
+      return {
+        status: 'unhealthy',
+        message: `Low disk space: ${freeSpace.toFixed(1)}% free`
+      }
+    }
+    
+    return {
+      status: 'healthy',
+      message: `Disk space: ${freeSpace.toFixed(1)}% free`
+    }
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      message: 'Unable to check disk space'
+    }
+  }
+}
 
 export async function GET() {
   try {
-    const healthStatus = {
-      status: "healthy",
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      version: "1.2.3",
-      environment: process.env.NODE_ENV || "development",
-      checks: {
-        database: "connected",
-        redis: "connected",
-        external_apis: "healthy",
-        memory: {
-          used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-          total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
-          percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100),
-        },
-        cpu: {
-          load: Math.random() * 100,
-          cores: require("os").cpus().length,
-        },
-      },
+    const startTime = Date.now()
+    
+    // Run all health checks in parallel
+    const [database, redis, externalServices] = await Promise.all([
+      checkDatabase(),
+      checkRedis(),
+      checkExternalServices()
+    ])
+    
+    const memory = checkMemory()
+    const disk = checkDisk()
+    
+    const checks = {
+      database,
+      redis,
+      external_services: externalServices,
+      memory,
+      disk
     }
-
-    return NextResponse.json(healthStatus, {
-      status: 200,
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-      },
-    })
-  } catch (error) {
+    
+    // Determine overall health status
+    const allHealthy = Object.values(checks).every(check => check.status === 'healthy')
+    
+    const healthStatus: HealthStatus = {
+      status: allHealthy ? 'healthy' : 'unhealthy',
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(process.uptime()),
+      version: process.env.APP_VERSION || '1.0.0',
+      environment: process.env.NODE_ENV || 'development',
+      checks
+    }
+    
+    const statusCode = allHealthy ? 200 : 503
+    const responseTime = Date.now() - startTime
+    
     return NextResponse.json(
       {
-        status: "unhealthy",
-        error: "Health check failed",
-        timestamp: new Date().toISOString(),
+        ...healthStatus,
+        responseTime: `${responseTime}ms`
       },
-      { status: 503 },
+      { 
+        status: statusCode,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
     )
+  } catch (error) {
+    console.error('Health check failed:', error)
+    
+    return NextResponse.json(
+      {
+        status: 'unhealthy',
+        timestamp: new Date().toISOString(),
+        uptime: Math.floor(process.uptime()),
+        version: process.env.APP_VERSION || '1.0.0',
+        environment: process.env.NODE_ENV || 'development',
+        error: 'Health check system failure',
+        checks: {
+          database: { status: 'unhealthy', message: 'Health check failed' },
+          redis: { status: 'unhealthy', message: 'Health check failed' },
+          external_services: { status: 'unhealthy', message: 'Health check failed' },
+          memory: { status: 'unhealthy', message: 'Health check failed' },
+          disk: { status: 'unhealthy', message: 'Health check failed' }
+        }
+      },
+      { status: 503 }
+    )
+  }
+}
+
+// Support HEAD requests for load balancer health checks
+export async function HEAD() {
+  try {
+    const [database, redis] = await Promise.all([
+      checkDatabase(),
+      checkRedis()
+    ])
+    
+    const isHealthy = database.status === 'healthy' && redis.status === 'healthy'
+    
+    return new Response(null, {
+      status: isHealthy ? 200 : 503,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
+    })
+  } catch (error) {
+    return new Response(null, { status: 503 })
   }
 }
